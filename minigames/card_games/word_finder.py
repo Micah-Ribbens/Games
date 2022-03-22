@@ -73,6 +73,7 @@ class WordFinder:
         for ch in word:
             if not self.has_child(ch.lower(), current):
                 return False
+
             current = self.get_child(ch.lower(), current)
 
         return current.is_end_of_word
