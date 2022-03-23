@@ -320,4 +320,9 @@ class TextBox(ClickableComponent):
 
         return letters_pressed
 
+    def set_color(self, color):
+        """Sets the text box's color"""
+
+        self.color, self.background_color = color, color
+
 

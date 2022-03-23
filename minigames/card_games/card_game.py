@@ -63,23 +63,36 @@ class CardGame(SubScreen):
     keys = []
     backspace_event = Event()
     word_finder = WordFinder()
+    max_time = 90 # in seconds
+    time_left = max_time
     # GUI
+    time_left_field = TextBox("Time Left:", 20, False, white, red)
     player1_score_field = TextBox("Player1 Score", 20, False, white, blue)
     player2_score_field = TextBox("Player2 Score", 20, False, white, purple)
     submit_button = Button("Submit", 20, white, green)
     swap_button = Button("Swap", 20, white, green)
-    components = [player1_score_field, player2_score_field, submit_button, swap_button]
+    time_left_field = TextBox("Time Left", 20, False, white, red)
+    all_cards = []
+    played_cards = []
+    components = [player1_score_field, player2_score_field, submit_button, swap_button, time_left_field]
 
     def __init__(self, height_used_up, length_used_up):
-        percent_height_used_up = (height_used_up / screen_height) * 100
-        self.player1_score_field.percentage_set_dimensions(0, percent_height_used_up, 50, 10)
-        self.player2_score_field.percentage_set_dimensions(50, percent_height_used_up, 50, 10)
+
+        hud_grid_height = VelocityCalculator.give_measurement(screen_height, 10)
+        hud_grid = Grid(Dimensions(length_used_up, height_used_up, screen_length - length_used_up, hud_grid_height),
+                        None, 1, True)
+        hud_components = [self.player1_score_field, self.player2_score_field, self.time_left_field]
+        hud_grid.turn_into_grid(hud_components, None, None)
 
         self.set_up_cards()
-
         self.keys = self.dict_keys_to_list(self.key_to_letter.keys())
         for x in range(len(self.keys)):
             self.key_events.append(Event())
+
+        # Initializing the text boxes
+        for x in range(self.number_of_cards):
+            self.all_cards.append(TextBox("", 20, False, white, blue))
+            self.played_cards.append(TextBox("", 20, False, white, blue))
 
         self.height_used_up, self.length_used_up = height_used_up, length_used_up
 
@@ -131,9 +144,10 @@ class CardGame(SubScreen):
         self.run_key_events()
         self.player1_score_field.text = f"Player 1 Score: {self.player1_score}"
         self.player2_score_field.text = f"Player 2 Score: {self.player2_score}"
+        self.time_left_field.text = f"Time Left: {int(self.time_left)}"
+        self.time_left -= VelocityCalculator.time
 
         if self.swap_button.got_clicked():
-            print("CLICKED")
             self.swap_button.text = "Swap" if self.swap_button.text == "Play" else "Play"
 
         if self.is_player1_turn:
@@ -146,6 +160,12 @@ class CardGame(SubScreen):
 
         is_submitted = self.can_submit() and self.submit_button.got_clicked()
 
+        if is_submitted and self.is_player1_turn and not self.is_swapping():
+            self.player1_score += self.get_points(self.player1_typed_letters)
+
+        elif is_submitted and not self.is_player1_turn and not self.is_swapping():
+            self.player2_score += self.get_points(self.player2_typed_letters)
+
         if is_submitted and self.is_player1_turn:
             self.player1_current_letters = self.get_current_cards(self.player1_current_letters, self.player1_typed_letters, self.all_player1_cards)
             self.player1_typed_letters = ""
@@ -154,15 +174,10 @@ class CardGame(SubScreen):
             self.player2_current_letters = self.get_current_cards(self.player2_current_letters, self.player2_typed_letters, self.all_player2_cards)
             self.player2_typed_letters = ""
 
-        if is_submitted and self.is_player1_turn and not self.is_swapping():
-            self.player1_score += self.get_points(self.player1_typed_letters)
-
-        elif is_submitted and not self.is_player1_turn and not self.is_swapping():
-            self.player2_score += self.get_points(self.player2_typed_letters)
-
-        if is_submitted:
+        if is_submitted and self.time_left <= 0:
             self.is_player1_turn = not self.is_player1_turn
             self.swap_button.text = "Swap"
+            self.time_left = self.max_time
 
     def get_letters_typed(self):
         """ summary: finds all the keys that was pressed then converts those pressed keys to characters
@@ -212,21 +227,25 @@ class CardGame(SubScreen):
         typed_letters = self.player1_typed_letters if self.is_player1_turn else self.player2_typed_letters
         default_color = blue if self.is_player1_turn else purple
 
-        all_cards = []
-        played_cards = []
         card_colors = self.get_card_colors(current_letters, typed_letters, default_color)
         for x in range(len(current_letters)):
-            all_cards.append(TextBox(current_letters[x], 12, False, white, card_colors[x]))
+            card: TextBox = self.all_cards[x]
+            card.set_color(card_colors[x])
+            card.text = current_letters[x]
 
-        for letter in typed_letters:
-            played_cards.append(TextBox(letter, 12, False, white, default_color))
+        played_cards = []
+        for x in range(len(typed_letters)):
+            card: TextBox = self.played_cards[x]
+            card.set_color(default_color)
+            card.text = typed_letters[x]
+            played_cards.append(card)
 
-        self.set_item_dimensions(all_cards, played_cards)
+        self.set_item_dimensions(self.all_cards, played_cards)
 
         self.submit_button.background_color = green if self.can_submit() else gray
         self.submit_button.color = green if self.can_submit() else gray
 
-        return self.components + all_cards + played_cards
+        return self.components + self.all_cards + played_cards
 
     def set_item_dimensions(self, all_cards, played_cards):
         """Sets the dimensions of the items in all_cards and played_cards"""
@@ -235,22 +254,24 @@ class CardGame(SubScreen):
         # So it takes up half of the remaining screen height
         card_grid_height = (screen_height - self.player1_score_field.bottom - buffer) / 2
 
-        button_length = VelocityCalculator.give_measurement(screen_length, 20)
+        length_buffer = VelocityCalculator.give_measurement(screen_length, 2)
+        button_length = VelocityCalculator.give_measurement(screen_length, 15)
+
         all_cards_grid = Grid(Dimensions(self.length_used_up, self.player1_score_field.bottom + buffer,
-                                         screen_length - self.length_used_up - button_length, card_grid_height), None, 1, True)
+                                         screen_length - button_length - self.length_used_up - length_buffer, card_grid_height), None, 1, True)
         all_cards_grid.turn_into_grid(all_cards, None, None)
 
         last_item = all_cards_grid.dimensions
-        self.swap_button.number_set_dimensions(last_item.right_edge, last_item.y_coordinate, button_length, last_item.height)
+        self.swap_button.number_set_dimensions(last_item.right_edge + length_buffer, last_item.y_coordinate, button_length, self.all_cards[0].height)
 
         grid_length = screen_length - self.length_used_up - button_length
-        played_cards_grid = Grid(Dimensions(self.length_used_up, last_item.bottom, grid_length,
+        played_cards_grid = Grid(Dimensions(self.length_used_up, last_item.bottom, grid_length - self.length_used_up - length_buffer,
                                             screen_height - last_item.bottom), None, 1, True)
-        played_cards_grid.turn_into_grid(played_cards, None, None)
+        played_cards_grid.turn_into_grid(played_cards, VelocityCalculator.give_measurement(screen_length, 25), None)
 
         last_item = played_cards_grid.dimensions
-        self.submit_button.number_set_dimensions(last_item.right_edge, last_item.y_coordinate, button_length,
-                                                 last_item.height)
+        self.submit_button.number_set_dimensions(last_item.right_edge + length_buffer, last_item.y_coordinate, button_length,
+                                                 self.all_cards[0].height)
 
     def run_key_events(self):
         """Runs all the key events"""
@@ -273,7 +294,7 @@ class CardGame(SubScreen):
     def get_points(self, letters):
         """returns: int; the amount of points that will be scored with those letters"""
 
-        length_to_points = {2: 1, 3: 3, 4: 5, 5: 7, 6: 12, 7: 20}
+        length_to_points = {2: 1, 3: 3, 4: 7, 5: 10, 6: 15, 7: 23}
 
         return length_to_points.get(len(letters))
 

@@ -1,3 +1,5 @@
+import cProfile
+
 import pygame.display
 
 from base.engines import CollisionsFinder
@@ -7,6 +9,9 @@ from base.important_variables import *
 import time
 from base.velocity_calculator import VelocityCalculator
 from gui.main_screen import MainScreen
+import re
+
+from minigames.card_games.word_finder import WordFinder
 
 game_window.add_screen(MainScreen())
 
@@ -24,3 +29,5 @@ while True:
     changer.run_changes()
     HistoryKeeper.last_time = VelocityCalculator.time
     VelocityCalculator.time = time.time() - start_time
+
+

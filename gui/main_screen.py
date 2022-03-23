@@ -27,8 +27,8 @@ class MainScreen(Screen):
         # Creates a little buffer between sub screens and this screen
         height_used_up = self.back_button.height + VelocityCalculator.give_measurement(screen_height, 5)
 
-        self.start_screen = StartScreen(height_used_up, self.back_button.length)
-        self.sub_screens = [LoadingScreen(height_used_up, self.back_button.length), self.start_screen]
+        self.start_screen = StartScreen(height_used_up, 0)
+        self.sub_screens = [LoadingScreen(height_used_up, 0), self.start_screen]
 
         self.components = [self.back_button]
         self.current_sub_screen = self.start_screen
