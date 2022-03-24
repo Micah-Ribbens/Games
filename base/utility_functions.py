@@ -277,12 +277,10 @@ def values_are_equal(object1, object2, attributes):
     """returns: boolean; if object1 and object2 have the same value for the attributes"""
 
     return_value = True
-    try:
-        for attribute in attributes:
-            if object1.__dict__[attribute] != object2.__dict__[attribute]:
-                return_value = False
-    except:
-        print("EH")
+    for attribute in attributes:
+        if object1.__dict__[attribute] != object2.__dict__[attribute]:
+            return_value = False
+
     return return_value
 
 
@@ -295,3 +293,57 @@ def get_index_of_range(ranges, number):
             return_value = x
 
     return return_value
+
+
+def string_to_list(string):
+    """returns: List of String; the string as a list"""
+
+    string_list = []
+    for ch in string:
+        string_list.append(ch)
+
+    return string_list
+
+
+def list_to_string(string_list):
+    "returns: String; the list as a string"
+
+    string = ""
+    for item in string_list:
+        string += item
+
+    return string
+
+
+def get_uppercase(letters):
+    """returns: String; the uppercase form of the letters"""
+
+    return_value = ""
+
+    for letter in letters:
+        return_value += letter.upper()
+
+    return return_value
+
+
+def get_lowercase(letters):
+    """returns: String; the lowercase form of all the letters"""
+
+    return_value = ""
+
+    for letter in letters:
+        return_value += letter.lower()
+
+    return return_value
+
+
+def remove_indexes(letters, remove_index):
+    """returns: List of String; the 'letters' without the index 'remove_index'"""
+
+    return letters[:remove_index] + letters[remove_index + 1:]
+
+
+def remove_letter(letters, letter):
+    """returns: List of String; the 'letters' without the 'letter'"""
+
+    return remove_indexes(letters, letters.index(letter))

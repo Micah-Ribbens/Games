@@ -1,3 +1,4 @@
+from base.utility_functions import get_lowercase, remove_letter
 from minigames.card_games.all_words import all_english_words
 
 
@@ -9,14 +10,9 @@ class Node:
 
 
 class WordFinder:
-    finalLetters = ""
+    """Uses a trie to find all words and see if something is a word"""
+
     letters = ""
-    startingLetter = 0
-    allWords = []
-    usedLetters = ""
-    letterList = []
-    letterDictionary = {}
-    alreadyReturned = False
 
     def __init__(self):
         self.root = Node(" ")
@@ -24,43 +20,32 @@ class WordFinder:
         for word in all_english_words:
             self.add_word(word)
 
-    def get_children(self, current):
+    def get_children(self, node):
+        """returns: List of String; the letters (children) that the node has"""
         children_list = []
         alphabet_list = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s",
                          "t", "u", "v", "w", "x", "y", "z"]
         for x in range(len(alphabet_list)):
-            if self.has_child(alphabet_list[x], current):
+            if self.has_child(alphabet_list[x], node):
                 children_list.append(alphabet_list[x])
         return children_list
 
-    def has_child(self, ch, current):
-        """
-        give current and character
-        """
-        if current is None:
-            return False
-        if current.children.get(ch) is None:
-            return False
-        else:
-            return True
+    def has_child(self, ch, node):
+        """returns: boolean; if the node has that child"""
 
-    def add_child(self, ch, current):
-        """
-        give character and current
-        """
-        current.children[ch] = Node(ch)
+        return node is not None and node.children.get(ch) is not None
 
-    def get_child(self, ch, current):
-        """
-        give character and current
-        """
-        try:
-            if current.children.get(ch) is not None:
-                return current.children.get(ch)
-        except AttributeError:
-            pass
+    def add_child(self, ch, node):
+        """Adds the ch (child) to the node"""
+        node.children[ch] = Node(ch)
+
+    def get_child(self, ch, node):
+        """returns: Node; the child of that node"""
+        return node.children.get(ch)
 
     def add_word(self, word):
+        """Adds the word to the word finder, so it knows it is a word"""
+
         current = self.root
         for ch in word:
             if not self.has_child(ch, current):
@@ -69,6 +54,8 @@ class WordFinder:
         current.is_end_of_word = True
 
     def is_word(self, word):
+        """returns: boolean; if the parameter 'word' is a word (more specifically in the trie)"""
+
         current = self.root
         for ch in word:
             if not self.has_child(ch.lower(), current):
@@ -78,38 +65,31 @@ class WordFinder:
 
         return current.is_end_of_word
 
-    def find_child(self, letters):
+    def get_node(self, letters):
+        """returns: Node; the node that the letters lead to"""
+
         current = self.root
         for ch in letters:
             current = self.get_child(ch, current)
         return current
 
-    def get_lowercase(self, letters):
-        """returns: String; the lowercase form of all the letters"""
-
-        return_value = ""
-
-        for letter in letters:
-            return_value += letter.lower()
-
-        return return_value
-
     def get_all_words(self, letters):
-        current = self.root
+        """returns: List of String; all the words possible with those letters"""
+
         # I used two lists that the indexes correlate;
         # I could've used a list of dictionaries, but it was too complex
         combinations = []
         all_words = []
         current_combination = ""
         index = 0
-        letters_available = self.get_lowercase(letters)
+        letters_available = get_lowercase(letters)
         letters_left = []
         while True:
-            current = self.find_child(current_combination)
+            current = self.get_node(current_combination)
             possible_letters = self.get_children(current)
             for letter in possible_letters:
                 if letters_available.__contains__(letter):
-                    letters_left.append(self.remove_letter(letters_available, letter))
+                    letters_left.append(remove_letter(letters_available, letter))
                     combinations.append(current_combination + letter)
 
             if index >= len(combinations):
@@ -122,14 +102,6 @@ class WordFinder:
             index += 1
 
         return all_words
-
-    def remove_indexes(self, letters, remove_index):
-        return letters[:remove_index] + letters[remove_index + 1:]
-
-    def remove_letter(self, letters, letter):
-        for x in range(len(letters)):
-            if letters[x] == letter:
-                return self.remove_indexes(letters, x)
 
     def get_longest_word(self, letters):
         """returns: String; the longest word possible with those letters; the lowercase form"""

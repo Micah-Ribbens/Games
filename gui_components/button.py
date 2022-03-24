@@ -18,6 +18,7 @@ class Button(TextBox):
         """
 
         super().__init__(text, font_size, False, text_color, background_color)
+        self.set_text_is_centered(True)
 
     def add_click_action(self, action):
         """ summary: adds the action to Button.actions; everytime the button is clicked that action will be called
