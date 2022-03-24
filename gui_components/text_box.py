@@ -10,10 +10,10 @@ from base.drawable_objects import GameObject
 from base.dimensions import Dimensions
 from base.important_variables import background_color, screen_height, screen_length, game_window
 import pygame
+import keyboard
 
 pygame.init()
 tk = Tk()
-
 
 class TextBox(ClickableComponent):
     """A box with text inside of it (that text can be altered or can't be depending on the TextBox's attributes
@@ -41,6 +41,7 @@ class TextBox(ClickableComponent):
     unexpanded_dimensions = None
     previous_components = None
     is_expanded = False
+    text_is_centered = False
 
     def dict_keys_to_list(self, dict_keys):
         """ summary: turns dict_keys into a list by iterating over each dict_key and adding it to a list
@@ -111,6 +112,22 @@ class TextBox(ClickableComponent):
         # Needs to be hear, so doesn't draw over text
         GameObject.render(self)
 
+        if not self.text_is_centered:
+            self.render_text_normally()
+
+        else:
+            render_words(self.text, self.font, x_coordinate=self.x_midpoint, y_coordinate=self.y_midpoint,
+                         text_color=self.text_color, is_center=True, text_background=self.background_color)
+
+        # Removing the cursor so it doesn't repeatedly add a cursor
+        new_text = ""
+        for ch in self.text:
+            if ch != "|":
+                new_text += ch
+        self.text = new_text
+
+    def render_text_normally(self):
+        """Renders the text without centering"""
         current_index = 0
         current_height = self.y_coordinate
         max_index = len(self.text)
@@ -133,14 +150,6 @@ class TextBox(ClickableComponent):
 
             current_height += self.font_ch_height
             current_index = last_word_index + 1
-
-        # Removing the cursor so it doesn't repeatedly add a cursor
-        new_text = ""
-        for ch in self.text:
-            if ch != "|":
-                new_text += ch
-        self.text = new_text
-
 
     def get_words_and_their_indexes(self):
         """ summary: finds the words and locations of the text box's text
@@ -325,4 +334,9 @@ class TextBox(ClickableComponent):
 
         self.color, self.background_color = color, color
 
+    def set_text_is_centered(self, text_is_centered):
+        """Sets the value of the attribute text_is_centered (modifies whether or not the text is displayed in
+        the center of the text box); NOTE only use this if the text can be displayed on one line"""
+
+        self.text_is_centered = text_is_centered
 

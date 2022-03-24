@@ -1,15 +1,16 @@
 import random
 from copy import deepcopy
-
-import pygame.key
+import pygame
 
 from base.colors import *
 from base.dimensions import Dimensions
 from base.events import TimedEvent, Event
 from base.important_variables import screen_height, screen_length
+from base.utility_functions import get_index_of_range
 from base.velocity_calculator import VelocityCalculator
 from gui_components.button import Button
 from gui_components.grid import Grid
+from gui_components.intermediate_screens import IntermediateScreens
 from gui_components.screen import Screen
 from gui_components.sub_screen import SubScreen
 from gui_components.text_box import TextBox
@@ -63,6 +64,7 @@ class CardGame(SubScreen):
     keys = []
     backspace_event = Event()
     word_finder = WordFinder()
+    word_finder = WordFinder()
     max_time = 90 # in seconds
     time_left = max_time
     # GUI
@@ -75,6 +77,7 @@ class CardGame(SubScreen):
     all_cards = []
     played_cards = []
     components = [player1_score_field, player2_score_field, submit_button, swap_button, time_left_field]
+    intermediate_screens = None
 
     def __init__(self, height_used_up, length_used_up):
 
@@ -84,6 +87,8 @@ class CardGame(SubScreen):
         hud_components = [self.player1_score_field, self.player2_score_field, self.time_left_field]
         hud_grid.turn_into_grid(hud_components, None, None)
 
+        self.intermediate_screens = IntermediateScreens(height_used_up, length_used_up, 3)
+
         self.set_up_cards()
         self.keys = self.dict_keys_to_list(self.key_to_letter.keys())
         for x in range(len(self.keys)):
@@ -91,8 +96,12 @@ class CardGame(SubScreen):
 
         # Initializing the text boxes
         for x in range(self.number_of_cards):
-            self.all_cards.append(TextBox("", 20, False, white, blue))
-            self.played_cards.append(TextBox("", 20, False, white, blue))
+            card1 = TextBox("", 20, False, white, blue)
+            card2 = TextBox("", 20, False, white, blue)
+            card1.set_text_is_centered(True)
+            card2.set_text_is_centered(True)
+            self.all_cards.append(card1)
+            self.played_cards.append(card2)
 
         self.height_used_up, self.length_used_up = height_used_up, length_used_up
 
@@ -138,6 +147,10 @@ class CardGame(SubScreen):
         self.all_player2_cards, self.all_player1_cards = deepcopy(all_cards), deepcopy(all_cards)
         self.player1_current_letters, self.player2_current_letters = all_cards[0:self.number_of_cards], all_cards[0:self.number_of_cards]
 
+        # So they are all new cards
+        self.all_player1_cards = self.all_player1_cards[self.number_of_cards + 1:]
+        self.all_player2_cards = self.all_player2_cards[self.number_of_cards + 1:]
+
     def run(self):
         """Runs all the code for figuring out the score and players moves"""
 
@@ -146,6 +159,12 @@ class CardGame(SubScreen):
         self.player2_score_field.text = f"Player 2 Score: {self.player2_score}"
         self.time_left_field.text = f"Time Left: {int(self.time_left)}"
         self.time_left -= VelocityCalculator.time
+
+        if not self.intermediate_screens.is_done():
+            self.intermediate_screens.run()
+
+        if self.intermediate_screens.is_done():
+            self.intermediate_screens.reset()
 
         if self.swap_button.got_clicked():
             self.swap_button.text = "Swap" if self.swap_button.text == "Play" else "Play"
@@ -159,12 +178,16 @@ class CardGame(SubScreen):
             self.player2_typed_letters = self.get_only_possible_letters(self.player2_typed_letters, self.player2_current_letters)
 
         is_submitted = self.can_submit() and self.submit_button.got_clicked()
+        typed_letters = self.player1_typed_letters if self.is_player1_turn else self.player2_typed_letters
+        all_letters = self.player1_current_letters if self.is_player1_turn else self.player2_current_letters
+        # If the player is swapping they should not get points
+        points = 0 if self.is_swapping() else self.get_points(typed_letters)
 
-        if is_submitted and self.is_player1_turn and not self.is_swapping():
-            self.player1_score += self.get_points(self.player1_typed_letters)
+        if is_submitted and self.is_player1_turn:
+            self.player1_score += points
 
-        elif is_submitted and not self.is_player1_turn and not self.is_swapping():
-            self.player2_score += self.get_points(self.player2_typed_letters)
+        elif is_submitted and not self.is_player1_turn:
+            self.player2_score += points
 
         if is_submitted and self.is_player1_turn:
             self.player1_current_letters = self.get_current_cards(self.player1_current_letters, self.player1_typed_letters, self.all_player1_cards)
@@ -174,17 +197,40 @@ class CardGame(SubScreen):
             self.player2_current_letters = self.get_current_cards(self.player2_current_letters, self.player2_typed_letters, self.all_player2_cards)
             self.player2_typed_letters = ""
 
-        if is_submitted and self.time_left <= 0:
+        if is_submitted or self.time_left <= 0:
+            player_turn = "Player 1" if self.is_player1_turn else "Player 2"
+            longest_word = self.word_finder.get_longest_word(all_letters)
+            best_word = f"Best Word: {self.get_uppercase(longest_word)}"
+            self.intermediate_screens.display([f"+{points} Points", player_turn, best_word], self.get_times())
+
             self.is_player1_turn = not self.is_player1_turn
             self.swap_button.text = "Swap"
             self.time_left = self.max_time
+
+    def get_times(self):
+        """returns: List of int; the times that the intermediate screens should be displayed"""
+
+        points_time = 0 if self.is_swapping() or self.time_left <= 0 else 1
+        player_turn_time = 1
+        best_word_time = 0 if self.is_swapping() else 2
+        return [points_time, player_turn_time, best_word_time]
+
+    def on_press(self, key):
+        letters = "abcdefghijklmnopqrstuvwxyz"
+        key = format(key)
+        print("CALLED", key)
+        can_add = letters.__contains__(key)
+        if self.is_player1_turn and can_add:
+            self.player1_current_letters += key.upper
+
+        elif can_add:
+            self.player2_current_letters += key.upper()
 
     def get_letters_typed(self):
         """ summary: finds all the keys that was pressed then converts those pressed keys to characters
             params: None
             returns: String; all the letters that have been typed that cycle (typed keys couldn't be held in last cycle)
         """
-
         letters_pressed = ""
         controls = pygame.key.get_pressed()
         for x in range(len(self.keys)):
@@ -198,7 +244,6 @@ class CardGame(SubScreen):
                 letters_pressed += self.key_to_letter.get(key)
 
         return letters_pressed
-
     def get_only_possible_letters(self, typed_letters, player_letters):
         """returns: String; only the letters that could be typed (player_letters has them); all the other letters are removed"""
 
@@ -244,8 +289,8 @@ class CardGame(SubScreen):
 
         self.submit_button.background_color = green if self.can_submit() else gray
         self.submit_button.color = green if self.can_submit() else gray
-
-        return self.components + self.all_cards + played_cards
+        game_components = self.components + self.all_cards + played_cards
+        return game_components if self.intermediate_screens.is_done() else self.intermediate_screens.get_components()
 
     def set_item_dimensions(self, all_cards, played_cards):
         """Sets the dimensions of the items in all_cards and played_cards"""
@@ -294,25 +339,23 @@ class CardGame(SubScreen):
     def get_points(self, letters):
         """returns: int; the amount of points that will be scored with those letters"""
 
-        length_to_points = {2: 1, 3: 3, 4: 7, 5: 10, 6: 15, 7: 23}
+        length_to_points = {2: 2, 3: 4, 4: 6, 5: 10, 6: 15, 7: 22}
 
         return length_to_points.get(len(letters))
 
     def get_current_cards(self, current_letters, letters, all_cards):
-        new_letters = ""
         current_letters_list = self.string_to_list(current_letters)
 
-        try:
-            for letter in letters:
-                current_letters_list.remove(letter)
-                all_cards.remove(letter)
-        except:
-            print("OH NO")
+        for letter in letters:
+            current_letters_list.remove(letter)
 
         new_letters = self.list_to_string(current_letters_list)
         needed_letters = self.number_of_cards - len(new_letters)
 
         new_letters += self.list_to_string(all_cards[:needed_letters])
+        for x in range(needed_letters):
+            del all_cards[x]
+
         return new_letters
 
     def string_to_list(self, string):
@@ -343,13 +386,8 @@ class CardGame(SubScreen):
             total_percent += vowel.percentage
 
         number = random.randint(0, 100)
-        return_value = None
+        return vowels[get_index_of_range(vowel_ranges, number)].vowel
 
-        for x in range(len(vowel_ranges)):
-            if vowel_ranges[x].__contains__(number):
-                return_value = vowels[x].vowel
-
-        return return_value
 
     def get_card_colors(self, current_letters, typed_letters, default_color):
         """Sets the cards colors depending on whether the player has typed it or not"""
@@ -371,3 +409,13 @@ class CardGame(SubScreen):
         """returns: boolean; if the player is currently swapping"""
 
         return self.swap_button.text == "Play"
+
+    def get_uppercase(self, letters):
+        """returns: String; the uppercase form of the letters"""
+
+        return_value = ""
+
+        for letter in letters:
+            return_value += letter.upper()
+
+        return return_value

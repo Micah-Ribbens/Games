@@ -55,7 +55,7 @@ def render_words(message, font, **kwargs):
         params:
             x_coordinate: int; the x_coordinate of the text
             y_coordinate: int; the y_coordinate of the text
-            text_is_centered: boolean; the x and y coordinates are the center of the text (if True) otherwise start of text
+            is_center: boolean; the x and y coordinates are the center of the text (if True) otherwise start of text
             is_center_of_screen: boolean; the text is in the center of the screen
             text_color (optional): tuple; the (Red, Green, Blue) values of text color; is (255, 255, 255) if not specified
             text_background (optional) tuple; the (Red, Green, Blue) values of the background of the text; is background_color if not specified
@@ -285,3 +285,13 @@ def values_are_equal(object1, object2, attributes):
         print("EH")
     return return_value
 
+
+def get_index_of_range(ranges, number):
+    """returns: int; the index of the range that has that number"""
+
+    return_value = -1
+    for x in range(len(ranges)):
+        if ranges[x].__contains__(number):
+            return_value = x
+
+    return return_value

@@ -1,5 +1,5 @@
-from gui.selection_screen import SelectionScreen
-from minigames.card_games.card_game import CardGame
+from gui_components.selection_screen import SelectionScreen
+from minigames.card_games.long_word_game import CardGame
 from minigames.quick_draw import QuickDraw
 
 

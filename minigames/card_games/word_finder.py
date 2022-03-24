@@ -84,7 +84,17 @@ class WordFinder:
             current = self.get_child(ch, current)
         return current
 
-    def find_all_words(self, letters):
+    def get_lowercase(self, letters):
+        """returns: String; the lowercase form of all the letters"""
+
+        return_value = ""
+
+        for letter in letters:
+            return_value += letter.lower()
+
+        return return_value
+
+    def get_all_words(self, letters):
         current = self.root
         # I used two lists that the indexes correlate;
         # I could've used a list of dictionaries, but it was too complex
@@ -92,7 +102,7 @@ class WordFinder:
         all_words = []
         current_combination = ""
         index = 0
-        letters_available = letters
+        letters_available = self.get_lowercase(letters)
         letters_left = []
         while True:
             current = self.find_child(current_combination)
@@ -103,13 +113,15 @@ class WordFinder:
                     combinations.append(current_combination + letter)
 
             if index >= len(combinations):
-                return all_words
+                break
 
             current_combination = combinations[index]
             letters_available = letters_left[index]
-            if self.has_word(current_combination) and len(current_combination) >= 2:
+            if self.is_word(current_combination) and len(current_combination) >= 2:
                 all_words.append(current_combination)
             index += 1
+
+        return all_words
 
     def remove_indexes(self, letters, remove_index):
         return letters[:remove_index] + letters[remove_index + 1:]
@@ -118,6 +130,16 @@ class WordFinder:
         for x in range(len(letters)):
             if letters[x] == letter:
                 return self.remove_indexes(letters, x)
+
+    def get_longest_word(self, letters):
+        """returns: String; the longest word possible with those letters; the lowercase form"""
+        longest_word = ""
+
+        for word in self.get_all_words(letters):
+            if len(word) > len(longest_word):
+                longest_word = word
+
+        return longest_word
 
 
 
