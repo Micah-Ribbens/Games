@@ -22,7 +22,7 @@ class SelectionScreen(SubScreen):
         self.buttons, self.components, self.screens = [], [], []
 
         for screen_name in screen_names:
-            self.buttons.append(Button(screen_name, 14, white, green))
+            self.buttons.append(Button(screen_name, 25, white, green))
 
         button_grid = Grid(Dimensions(length_used_up, height_used_up, screen_length - length_used_up,
                                       screen_height - height_used_up), 4, None, True)

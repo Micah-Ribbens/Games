@@ -53,9 +53,6 @@ class HistoryKeeper:
 
         HistoryKeeper.last_objects[f"{name}{VelocityCalculator.time}"] = object
 
-        if not HistoryKeeper.times.__contains__(VelocityCalculator.time):
-            HistoryKeeper.times.append(VelocityCalculator.time)
-
     def get_last(name):
         """ summary: gets the version of that object from the last cycle
             params:

@@ -17,7 +17,7 @@ class MainScreen(Screen):
     start_screen = None
     current_sub_screen = None
     sub_screens = []
-    back_button = Button("Back", 20, white, green)
+    back_button = Button("Back", 30, white, green)
 
     def __init__(self):
         """Initializes the object"""

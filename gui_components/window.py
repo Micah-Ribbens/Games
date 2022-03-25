@@ -101,9 +101,9 @@ class Window:
                 continue
 
             for component in screen.get_components():
-
                 if component.is_runnable:
                     component.run()
+
 
                 component.render()
 

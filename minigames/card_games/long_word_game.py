@@ -135,7 +135,8 @@ class CardGame(WordGame):
 
     def run_submission(self):
         """Runs all the code necessary for what to do after submissions"""
-        is_submitted = self.can_submit() and self.submit_button.got_clicked()
+        submit_tried = self.submit_button.got_clicked() or pygame.key.get_pressed()[pygame.K_RETURN]
+        is_submitted = self.can_submit() and submit_tried
         typed_letters = self.player1_typed_letters if self.is_player1_turn else self.player2_typed_letters
         all_letters = self.player1_current_letters if self.is_player1_turn else self.player2_current_letters
         # If the player is swapping they should not get points

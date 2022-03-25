@@ -80,13 +80,7 @@ class TextBox(ClickableComponent):
         self.font_ch_length = one_letter.width
         self.font_ch_height = one_letter.height
 
-        self.keys = self.dict_keys_to_list(self.key_to_letter.keys())
-        for x in range(len(self.keys)):
-            self.key_events.append(Event())
 
-        self.delete_event = Event()
-        self.ctrl_v_event = Event()
-        self.expand_key_event = Event()
 
     def set_font(self, font_size):
         """ summary: changes the text box's font
@@ -221,32 +215,8 @@ class TextBox(ClickableComponent):
         """
 
         ClickableComponent.run(self)
-
-        controls = pygame.key.get_pressed()
-        mods = pygame.key.get_mods()
-        for x in range(len(self.keys)):
-            key_event = self.key_events[x]
-            key_was_pressed = controls[self.keys[x]]
-            key_event.run(key_was_pressed)
-
-        self.delete_event.run(controls[pygame.K_BACKSPACE])
-
-        ctrl_v_clicked = pygame.KMOD_CTRL & mods and controls[pygame.K_v]
-        self.ctrl_v_event.run(ctrl_v_clicked)
-
-        expand_key_clicked = controls[pygame.K_e] and mods & pygame.KMOD_CTRL
-        self.expand_key_event.run(expand_key_clicked)
-
-        if self.is_selected and self.is_editable:
-            self.do_insertion_deletion_logic()
-
-        # If the text box just got selected then the default text shouldn't hinder the user typing
-        if self.is_selected and self.text == self.default_text and self.is_editable:
-            self.text = ""
-
-        # If the text box got un selected and there is no text then the default text should be displayed
-        elif not self.is_selected and self.text == "" and self.is_editable:
-            self.text = self.default_text
+        if self.is_editable:
+            self.run_keys()
 
     def do_insertion_deletion_logic(self):
         """ summary: adds all the typed characters and deletes a character if the backspace was hit
@@ -285,7 +255,6 @@ class TextBox(ClickableComponent):
 
         self.set_dimensions(self.unexpanded_dimensions)
         self.is_expanded = False
-
 
     def expand(self):
         """ summary: expands the textbox and stores necessary values to unexpand it
@@ -339,4 +308,45 @@ class TextBox(ClickableComponent):
         the center of the text box); NOTE only use this if the text can be displayed on one line"""
 
         self.text_is_centered = text_is_centered
+
+    def initialize_keys(self):
+        """Initializes everything needed to be able to get keyboard input; MUST ONLY be called if the text box is editable"""
+
+        self.keys = self.dict_keys_to_list(self.key_to_letter.keys())
+        for x in range(len(self.keys)):
+            self.key_events.append(Event())
+
+        self.delete_event = Event()
+        self.ctrl_v_event = Event()
+        self.expand_key_event = Event()
+
+    def run_keys(self):
+        """Runs all the code to be able to get keyboard input; MUST ONLY be called if the text box is editable"""
+
+        controls = pygame.key.get_pressed()
+        mods = pygame.key.get_mods()
+        for x in range(len(self.keys)):
+            key_event = self.key_events[x]
+            key_was_pressed = controls[self.keys[x]]
+            key_event.run(key_was_pressed)
+
+        self.delete_event.run(controls[pygame.K_BACKSPACE])
+
+        ctrl_v_clicked = pygame.KMOD_CTRL & mods and controls[pygame.K_v]
+        self.ctrl_v_event.run(ctrl_v_clicked)
+
+        expand_key_clicked = controls[pygame.K_e] and mods & pygame.KMOD_CTRL
+        self.expand_key_event.run(expand_key_clicked)
+
+        if self.is_selected:
+            self.do_insertion_deletion_logic()
+
+        # If the text box just got selected then the default text shouldn't hinder the user typing
+        if self.is_selected and self.text == self.default_text:
+            self.text = ""
+
+        # If the text box got un selected and there is no text then the default text should be displayed
+        elif not self.is_selected and self.text == "":
+            self.text = self.default_text
+
 

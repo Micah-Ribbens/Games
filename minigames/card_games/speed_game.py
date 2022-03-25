@@ -6,6 +6,7 @@ from base.colors import *
 from base.dimensions import Dimensions
 from base.events import TimedEvent, Event
 from base.important_variables import screen_height, screen_length
+from base.sound_effect import SoundEffect
 from base.utility_functions import get_index_of_range, get_uppercase
 from base.velocity_calculator import VelocityCalculator
 from gui_components.button import Button
@@ -42,6 +43,8 @@ class SpeedGame(WordGame):
     high_score_field = TextBox("High Score", 20, False, white, purple)
     time_field = TextBox("Time", 20, False, white, red)
     components = [submit_button, skip_button, points_field, time_field, high_score_field]
+    # Sound Effects
+    next_cards_sound = SoundEffect("sound_effects/applause.wav", 1)
 
     def __init__(self, height_used_up, length_used_up):
         """Initializes the object"""
@@ -59,6 +62,7 @@ class SpeedGame(WordGame):
         """Runs all the code necessary in order for this game to work"""
         self.run_key_events()
         self.run_intermediate_screens()
+        self.next_cards_sound.run()
 
         submit_tried = self.submit_button.got_clicked() or pygame.key.get_pressed()[pygame.K_RETURN]
         is_submitted = self.can_submit() and submit_tried
@@ -77,6 +81,7 @@ class SpeedGame(WordGame):
             self.current_letters = self.all_cards[self.cards_gone_through]
             self.cards_gone_through += 1
             self.typed_letters = ""
+            self.next_cards_sound.play()
 
         if self.current_time <= 0:
             self.run_new_round([1, 1])

@@ -19,6 +19,8 @@ class IntermediateScreens(SubScreen):
     def __init__(self, height_used_up, length_used_up, number_of_screens):
         """Initializes the object"""
 
+        self.screen_components, self.time_ranges = [], []
+
         for x in range(number_of_screens):
             text_box = TextBox("", 42, False, white, background_color)
             self.screen_components.append(text_box)
