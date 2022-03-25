@@ -65,12 +65,11 @@ class CardGame(WordGame):
     time_left_field = TextBox("Time Left:", 20, False, white, red)
     player1_score_field = TextBox("Player1 Score", 20, False, white, blue)
     player2_score_field = TextBox("Player2 Score", 20, False, white, purple)
-    submit_button = Button("Submit", 20, white, green)
     swap_button = Button("Swap", 20, white, green)
     time_left_field = TextBox("Time Left", 20, False, white, red)
     all_cards = []
     played_cards = []
-    components = [player1_score_field, player2_score_field, submit_button, swap_button, time_left_field]
+    components = [player1_score_field, player2_score_field, swap_button, time_left_field]
 
     def __init__(self, height_used_up, length_used_up):
 
@@ -87,6 +86,7 @@ class CardGame(WordGame):
         intermediate_screens = IntermediateScreens(height_used_up, length_used_up, 3)
 
         self.set_up_cards()
+        self.components.append(self.submit_button)
         super().__init__(height_used_up, length_used_up, self.number_of_cards, intermediate_screens)
 
     def get_cards(self, letters, vowels):
@@ -135,8 +135,7 @@ class CardGame(WordGame):
 
     def run_submission(self):
         """Runs all the code necessary for what to do after submissions"""
-
-        is_submitted = self.can_submit(3) and self.submit_button.got_clicked()
+        is_submitted = self.can_submit() and self.submit_button.got_clicked()
         typed_letters = self.player1_typed_letters if self.is_player1_turn else self.player2_typed_letters
         all_letters = self.player1_current_letters if self.is_player1_turn else self.player2_current_letters
         # If the player is swapping they should not get points
@@ -177,7 +176,9 @@ class CardGame(WordGame):
         self.player1_score_field.text = f"Player 1 Score: {self.player1_score}"
         self.player2_score_field.text = f"Player 2 Score: {self.player2_score}"
         self.time_left_field.text = f"Time Left: {int(self.time_left)}"
-        self.time_left -= VelocityCalculator.time
+
+        if self.intermediate_screens.is_done():
+            self.time_left -= VelocityCalculator.time
 
         if self.swap_button.got_clicked():
             self.swap_button.text = "Swap" if self.swap_button.text == "Play" else "Play"
@@ -204,37 +205,12 @@ class CardGame(WordGame):
         for x in range(len(typed_letters)):
             played_cards.append(self.played_cards[x])
 
-        self.set_item_dimensions(self.all_cards, played_cards)
+        self.set_item_dimensions(played_cards, self.player1_score_field, self.swap_button, self.submit_button)
 
-        self.submit_button.set_color(green if self.can_submit(2) else gray)
-        game_components = self.components + self.all_cards + played_cards
+        self.submit_button.set_color(green if self.can_submit() else gray)
+        game_components = self.components + self.current_cards + played_cards
         return game_components if self.intermediate_screens.is_done() else self.intermediate_screens.get_components()
 
-    def set_item_dimensions(self, all_cards, played_cards):
-        """Sets the dimensions of the items in all_cards and played_cards"""
-
-        buffer = VelocityCalculator.give_measurement(screen_height, 5)
-        # So it takes up half of the remaining screen height
-        card_grid_height = (screen_height - self.player1_score_field.bottom - buffer) / 2
-
-        length_buffer = VelocityCalculator.give_measurement(screen_length, 2)
-        button_length = VelocityCalculator.give_measurement(screen_length, 15)
-
-        all_cards_grid = Grid(Dimensions(self.length_used_up, self.player1_score_field.bottom + buffer,
-                                         screen_length - button_length - self.length_used_up - length_buffer, card_grid_height), None, 1, True)
-        all_cards_grid.turn_into_grid(all_cards, None, None)
-
-        last_item = all_cards_grid.dimensions
-        self.swap_button.number_set_dimensions(last_item.right_edge + length_buffer, last_item.y_coordinate, button_length, self.all_cards[0].height)
-
-        grid_length = screen_length - self.length_used_up - button_length
-        played_cards_grid = Grid(Dimensions(self.length_used_up, last_item.bottom, grid_length - self.length_used_up - length_buffer,
-                                            screen_height - last_item.bottom), None, 1, True)
-        played_cards_grid.turn_into_grid(played_cards, VelocityCalculator.give_measurement(screen_length, 25), None)
-
-        last_item = played_cards_grid.dimensions
-        self.submit_button.number_set_dimensions(last_item.right_edge + length_buffer, last_item.y_coordinate, button_length,
-                                                 self.all_cards[0].height)
     def get_points(self, letters):
         """returns: int; the amount of points that will be scored with those letters"""
 
@@ -273,4 +249,8 @@ class CardGame(WordGame):
         """returns: boolean; if the player is currently swapping"""
 
         return self.swap_button.text == "Play"
+
+    def can_submit(self):
+        letters = self.player1_typed_letters if self.is_player1_turn else self.player2_typed_letters
+        return super().can_submit(letters, 2) or self.is_swapping()
 

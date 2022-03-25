@@ -113,5 +113,16 @@ class WordFinder:
 
         return longest_word
 
+    def get_all_words_of_length(self, letters, length):
+        """returns: String; all the words that those letters can yield which length matches the parameter 'length'"""
+
+        return_value = []
+
+        for word in self.get_all_words(letters):
+            if len(word) == length:
+                return_value.append(word)
+
+        return return_value
+
 
 

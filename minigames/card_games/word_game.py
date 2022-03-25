@@ -1,8 +1,13 @@
 import pygame
 
 from base.colors import *
+from base.dimensions import Dimensions
 from base.events import Event
+from base.important_variables import screen_height, screen_length
 from base.utility_functions import string_to_list
+from base.velocity_calculator import VelocityCalculator
+from gui_components.button import Button
+from gui_components.grid import Grid
 from gui_components.intermediate_screens import IntermediateScreens
 from gui_components.sub_screen import SubScreen
 from gui_components.text_box import TextBox
@@ -17,10 +22,16 @@ class WordGame(SubScreen):
     backspace_event = Event()
     # Other Stuff
     word_finder = WordFinder()
-    intermediate_screens = None
+    intermediate_screens: IntermediateScreens = None
+    # GUI
+    current_cards = []
+    played_cards = []
+    submit_button = Button("Submit", 20, white, green)
 
     def __init__(self, height_used_up, length_used_up, number_of_cards, intermediate_screens):
         """Initializes the object"""
+
+        self.key_events, self.current_cards, self.played_cards = [], [], []
 
         self.keys = self.dict_keys_to_list(self.key_to_letter.keys())
         for x in range(len(self.keys)):
@@ -32,7 +43,7 @@ class WordGame(SubScreen):
             card2 = TextBox("", 20, False, white, blue)
             card1.set_text_is_centered(True)
             card2.set_text_is_centered(True)
-            self.all_cards.append(card1)
+            self.current_cards.append(card1)
             self.played_cards.append(card2)
 
         self.height_used_up, self.length_used_up = height_used_up, length_used_up
@@ -96,15 +107,14 @@ class WordGame(SubScreen):
         controls = pygame.key.get_pressed()
         for x in range(len(self.key_events)):
             self.key_events[x].run(controls[self.keys[x]])
+
         self.backspace_event.run(controls[pygame.K_BACKSPACE])
 
-    def can_submit(self, needed_length):
+    def can_submit(self, letters, needed_length):
         """returns: boolean if the letters can be submitted to get a score"""
 
-        letters = self.player1_typed_letters if self.is_player1_turn else self.player2_typed_letters
-
         is_valid_word = len(letters) >= needed_length and self.word_finder.is_word(letters)
-        return is_valid_word or self.is_swapping()
+        return is_valid_word
 
     def get_card_colors(self, current_letters, typed_letters, default_color):
         """Sets the cards colors depending on whether the player has typed it or not"""
@@ -132,7 +142,7 @@ class WordGame(SubScreen):
 
         card_colors = self.get_card_colors(current_letters, typed_letters, default_color)
         for x in range(len(current_letters)):
-            card: TextBox = self.all_cards[x]
+            card: TextBox = self.current_cards[x]
             card.set_color(card_colors[x])
             card.text = current_letters[x]
 
@@ -144,3 +154,29 @@ class WordGame(SubScreen):
 
         if self.intermediate_screens.is_done():
             self.intermediate_screens.reset()
+
+    def set_item_dimensions(self, played_cards, last_item, all_cards_button, played_cards_button):
+        """Sets the dimensions of the GUI components"""
+
+        buffer = VelocityCalculator.give_measurement(screen_height, 5)
+        # So it takes up half of the remaining screen height
+        card_grid_height = (screen_height - last_item.bottom - buffer) / 2
+
+        length_buffer = VelocityCalculator.give_measurement(screen_length, 2)
+        button_length = VelocityCalculator.give_measurement(screen_length, 15)
+
+        all_cards_grid = Grid(Dimensions(self.length_used_up, last_item.bottom + buffer,
+                                         screen_length - button_length - self.length_used_up - length_buffer, card_grid_height), None, 1, True)
+        all_cards_grid.turn_into_grid(self.current_cards, None, None)
+
+        last_item = all_cards_grid.dimensions
+        all_cards_button.number_set_dimensions(last_item.right_edge + length_buffer, last_item.y_coordinate, button_length, self.current_cards[0].height)
+
+        grid_length = screen_length - self.length_used_up - button_length
+        played_cards_grid = Grid(Dimensions(self.length_used_up, last_item.bottom, grid_length - self.length_used_up - length_buffer,
+                                            screen_height - last_item.bottom), None, 1, True)
+        played_cards_grid.turn_into_grid(played_cards, VelocityCalculator.give_measurement(screen_length, 25), None)
+
+        last_item = played_cards_grid.dimensions
+        played_cards_button.number_set_dimensions(last_item.right_edge + length_buffer, last_item.y_coordinate, button_length,
+                                                 self.current_cards[0].height)
