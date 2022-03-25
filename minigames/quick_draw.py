@@ -24,8 +24,8 @@ class QuickDraw(SubScreen):
     player2_shoot_event = Event()
     # GUI
     shooting_prompt_field = TextBox("Wait", 60, False, white, red)
-    player1_score_field = TextBox("Player1 Score", 12, False, white, blue)
-    player2_score_field = TextBox("Player2 Score", 12, False, white, purple)
+    player1_score_field = TextBox("Player1 Score", 25, False, white, blue)
+    player2_score_field = TextBox("Player2 Score", 25, False, white, purple)
     intermediate_screens = None
     components = [player2_score_field, player1_score_field, shooting_prompt_field]
 
@@ -35,6 +35,10 @@ class QuickDraw(SubScreen):
         self.shooting_prompt_field.percentage_set_dimensions(20, percent_height_used_up + 10, 100 - 10 - percent_height_used_up, 60)
         self.player1_score_field.percentage_set_dimensions(0, percent_height_used_up, 50, 10)
         self.player2_score_field.percentage_set_dimensions(50, percent_height_used_up, 50, 10)
+
+        self.player1_score_field.set_text_is_centered(True)
+        self.player2_score_field.set_text_is_centered(True)
+
         self.intermediate_screens = IntermediateScreens(height_used_up, length_used_up, 2)
         self.intermediate_screens.display(["Player Scored", "Round 1"], [0, 1])
 
@@ -56,8 +60,6 @@ class QuickDraw(SubScreen):
         player1_has_scored = self.player_has_scored(player1_shoot_key, player2_shoot_key, self.player1_shoot_event, self.player2_shoot_event)
         player2_has_scored = self.player_has_scored(player2_shoot_key, player1_shoot_key, self.player2_shoot_event, self.player1_shoot_event)
         self.run_scoring(player1_has_scored, player2_has_scored)
-
-
 
     def player_has_scored(self, player_shoot_key, other_player_shoot_key, player_shoot_event, other_player_shoot_event):
         """returns: boolean; if the player has scored; either they hit shoot when screen displayed 'Fire' or the other player hit
@@ -115,5 +117,5 @@ class QuickDraw(SubScreen):
             self.round_number += 1
 
             player_message = "Player 1 Has Scored" if player1_has_scored else "Player 2 Has Scored"
-            self.intermediate_screens.display([f"Round {self.round_number}", player_message], [1, 1])
+            self.intermediate_screens.display([player_message, f"Round {self.round_number}"], [1, 1])
 
