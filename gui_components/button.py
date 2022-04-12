@@ -15,6 +15,8 @@ class Button(TextBox):
                 font_size: int; the size of the button's text
                 text_color: tuple; the (Red, Green, Blue) values of the button's text color
                 background_color: tuple; the (Red, Green, Blue) values of the button's background
+
+            returns: None
         """
 
         super().__init__(text, font_size, False, text_color, background_color)
@@ -43,7 +45,6 @@ class Button(TextBox):
             self.action()
 
     def __str__(self):
-        return self.text
+        """returns: String; the text of the button"""
 
-    def __repr__(self):
         return self.text

@@ -18,7 +18,6 @@ max_vowels = 3 # The max amount of vowels in each set of letters; amount of vowe
 total_letters = 6
 needed_possible_words = 3 # The amount of words that the letters must be able to produce (can be higher, but not lower)
 
-get_letter_combinations("abc", 3)
 all_vowels = get_all_letter_combinations(vowels, max_vowels)
 letter_combinations = []
 start = time.time()

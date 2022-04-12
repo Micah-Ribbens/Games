@@ -347,3 +347,7 @@ def remove_letter(letters, letter):
     """returns: List of String; the 'letters' without the 'letter'"""
 
     return remove_indexes(letters, letters.index(letter))
+
+
+def get_sublist(items, start, length):
+    return items[start: start + length]

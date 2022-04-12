@@ -11,6 +11,8 @@ class Grid:
     max_rows = 0
     starts_at_top = False
     number_of_items = 0
+    length_buffer = VelocityCalculator.give_measurement(screen_length, 1)
+    height_buffer = VelocityCalculator.give_measurement(screen_height, 1)
 
     # function takes instantiates the values of the instances of the grid 
     def __init__(self, dimensions, max_columns, max_rows, starts_at_top):
@@ -43,8 +45,6 @@ class Grid:
             returns: None
         """
 
-        length_buffer = VelocityCalculator.give_measurement(screen_length, 1)
-        height_buffer = VelocityCalculator.give_measurement(screen_height, 1)
         self.number_of_items = len(items)
 
         # If there are no items, then nothing can be turned into a grid
@@ -53,8 +53,8 @@ class Grid:
 
         rows = self.get_rows()
         columns = self.get_columns()
-        item_length = self.get_item_length(columns, item_max_length, length_buffer)
-        item_height = self.get_item_height(rows, item_max_height, height_buffer)
+        item_length = self.get_item_length(columns, item_max_length)
+        item_height = self.get_item_height(rows, item_max_height)
         base_y_coordinate = self.dimensions.y_coordinate if self.starts_at_top else self.dimensions.bottom - item_height
 
         for x in range(self.number_of_items):
@@ -67,32 +67,31 @@ class Grid:
 
             # The row and column numbers are multiplied by the buffers to add the neccessary buffers. For instance, if it is in column 3
             # The item in column 1 and column 2 had a buffer, so it'd be the length_buffer * 2
-            change_from_height_buffer = (row_number * height_buffer) if self.starts_at_top else -(row_number * height_buffer)
-            change_from_length_buffer = (column_number * length_buffer)
+            change_from_height_buffer = (row_number * self.height_buffer) if self.starts_at_top else -(row_number * self.height_buffer)
+            change_from_length_buffer = (column_number * self.length_buffer)
 
             y_coordinate_change += change_from_height_buffer
 
             # Multiplying column_number by item_length because each column that is before it increases the x_coordinate that a item should be at
             # For instance, if it is at the 2nd column then one item was before it so it'd be column_number * item_length
-            x_coordinate = (column_number * item_length) + change_from_length_buffer
+            x_coordinate = (column_number * item_length) + change_from_length_buffer + self.dimensions.x_coordinate
             y_coordinate = base_y_coordinate + y_coordinate_change
 
             items[x].number_set_dimensions(x_coordinate, y_coordinate, item_length, item_height)
 
-    def get_item_length(self, columns, item_max_length, length_buffer):
+    def get_item_length(self, columns, item_max_length):
         """ summary: divides the available length by the number of columns to figure out each item's length in the grid
 
             params:
                 columns: int; the number of columns that the grid has
                 item_max_length: int; the max length of an item
-                length_buffer: int; the buffer (space between items) between each item in the grid
 
             returns: int; the length that each item in the grid should be
         """
 
         # Must minus the length buffer * (number_of_items - 2) from the regular length because
         # Every item has the length_buffer after it besides the first and last item, so hence the minus 2
-        remaining_length = self.dimensions.length - (length_buffer * (self.number_of_items - 2))
+        remaining_length = self.dimensions.length - (self.length_buffer * (columns - 2))
 
         length = remaining_length // columns
 
@@ -101,20 +100,19 @@ class Grid:
         
         return length
 
-    def get_item_height(self, rows, item_max_height, height_buffer):
+    def get_item_height(self, rows, item_max_height):
         """ summary: divides the available height by the number of rows to calculate each item's height in the grid
 
             params:
                 rows: int; the amount of rows in the grid
                 item_max_height: int; the max height of the items in the grid
-                height_buffer: int; the height of each buffer (space between items) in the grid
 
             returns: int; the height of each item in the grid
         """
 
         # Must minus the height_buffer * (number_of_items - 2) from the regular height because
-        # Every item has the height_buffer after it besides the first and last item, so hence the minus 2
-        remaining_height = self.dimensions.height - (height_buffer * (self.number_of_items - 2))
+        # Every item has the self.height_buffer after it besides the first and last item, so hence the minus 2
+        remaining_height = self.dimensions.height - (self.height_buffer * (self.number_of_items - 2))
         height = remaining_height // rows
 
         if item_max_height is not None and height > item_max_height:
@@ -144,7 +142,6 @@ class Grid:
             params: None
             returns: int; the number of rows in the grid
         """
-
 
         columns = self.max_columns if self.max_columns is not None else self.get_columns()
         # The overfill of number_of_items / max_columns must be an additional row
