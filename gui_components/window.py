@@ -1,6 +1,6 @@
 import pygame
 
-
+# TODO add method schedule_update() to make performance better
 class Window:
     """Shows everything onto the users screen through adding components to it and displaying those added components"""
 
@@ -184,12 +184,6 @@ class Window:
             returns: None
         """
 
-        for component in screen.get_components():
-            component.is_visible = is_visible
-
-        for screen in self.screens:
-            screen.is_visible = False
-
         screen.is_visible = is_visible
 
     def set_screens_visible(self, screens, is_visible):
@@ -201,9 +195,6 @@ class Window:
 
             returns: None
         """
-
-        for screen in self.screens:
-            screen.is_visible = False
 
         for screen in screens:
             self.set_screen_visible(screen, is_visible)

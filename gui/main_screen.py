@@ -26,7 +26,6 @@ class MainScreen(Screen):
 
         self.selection_screen.get_selected_screen().run()
 
-
     def get_components(self):
         """returns: Component[]; the components that should be rendered"""
 

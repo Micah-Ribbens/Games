@@ -14,7 +14,7 @@ class DropDownMenu(ClickableComponent):
     title_portion = None
     text_portion = None
     text_color = None
-    background_color = None
+    menu_color = None
     font_size = 0
     is_expanded = False
     title = ""
@@ -27,14 +27,14 @@ class DropDownMenu(ClickableComponent):
     buffer_height = 0
     item_height_is_set = False
 
-    def __init__(self, title, item_names, text_color, background_color, font_size, selected_index):
+    def __init__(self, title, item_names, text_color, menu_color, font_size, selected_index):
         """ summary: initializes the object
 
             params:
                 title: String; the title of the drop down menu
                 item_names; List of String; the names of the items that the drop down menu will display
                 text_color: tuple; the (Red, Green, Blue) values of the text
-                background_color: tuple; the (Red, Green, Blue) values of the drop down menu's background
+                menu_color: tuple; the (Red, Green, Blue) values of the drop down menu's background
                 font_size: int; the size of the text
                 selected_index: int; the index of the initial item that is selected
 
@@ -45,13 +45,13 @@ class DropDownMenu(ClickableComponent):
         self.items = []
         self.prev_time = 0
         self.text_color = text_color
-        self.background_color = background_color
+        self.menu_color = menu_color
         self.font_size = font_size
         self.title = title
         # This sets the text that is selected automatically without the user's input
         self.text = item_names[selected_index]
         self.selected_item = item_names[selected_index]
-        self.text_portion = TextBox(self.text, font_size, False, text_color, background_color)
+        self.text_portion = TextBox(self.text, font_size, False, text_color, menu_color)
         self.title_portion = TextBox(self.title, font_size, False, text_color, background_color)
 
         for item_name in item_names:
@@ -77,7 +77,7 @@ class DropDownMenu(ClickableComponent):
         """
 
         item = TextBox(text, self.font_size, False,
-                       self.text_color, self.background_color)
+                       self.text_color, self.menu_color)
 
         self.items.append(item)
 
@@ -165,7 +165,7 @@ class DropDownMenu(ClickableComponent):
             returns: None
         """
 
-        arrow_container = GameObject(x_coordinate, y_coordinate, self.item_height, remaining_length, self.background_color)
+        arrow_container = GameObject(x_coordinate, y_coordinate, self.item_height, remaining_length, self.menu_color)
 
         # From here down is talking about the arrow part
         percent_down = 20

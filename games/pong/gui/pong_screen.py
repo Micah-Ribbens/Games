@@ -65,7 +65,7 @@ class PongScreen(Screen):
             self.current_sub_screen = self.start_screen
 
         for button in self.start_screen.sub_screen_buttons:
-            if button.got_clicked():
+            if button.got_clicked() and self.current_sub_screen == self.start_screen:
                 game_window.set_screens_visible(self.sub_screens, False)
                 self.current_sub_screen = self.start_screen.get_sub_screen(button)
                 game_window.set_screen_visible(self.current_sub_screen, True)
@@ -73,13 +73,19 @@ class PongScreen(Screen):
         if self.current_sub_screen is not None:
             self.current_sub_screen.run()
 
+        if self.current_screen != self:
+            self.current_screen.run()
+
         new_screen = self.get_screen()
 
         if new_screen != self.current_screen:
             self.current_screen.un_setup()
             new_screen.setup()
-            game_window.display_screen(new_screen)
+            game_window.set_screen_visible(new_screen, True)
             self.current_sub_screen = None
+
+        if new_screen == self and new_screen != self.current_screen:
+            self.current_sub_screen = self.start_screen
 
         self.current_screen = new_screen
 
@@ -100,23 +106,22 @@ class PongScreen(Screen):
             self.game_screen.is_visible and self.game_screen.pause_button.got_clicked(): self.pause_screen,
             self.pause_screen.is_visible and self.pause_screen.continue_game_button.got_clicked(): self.game_screen,
             self.is_visible and self.start_button.got_clicked(): self.game_screen,
-            self.pause_screen.is_visible and self.pause_screen.go_to_start_screen_button.got_clicked(): self.start_screen
+            self.pause_screen.is_visible and self.pause_screen.go_to_start_screen_button.got_clicked(): self
         }
 
         screen = action_to_screen.get(True)
         # If none of the actions are True then action_to_screen.get will return None, so the screen stays
         # As the current_screen
 
-        if screen is not None:
-            print("BAAAD")
         return screen if screen is not None else self.current_screen
 
     def get_components(self):
         """returns: Component[]; the components that should be rendered and ran"""
 
         return_value = self.components
+
         if self.current_sub_screen is not None:
-            return_value += self.current_sub_screen.get_components()
+            return_value = self.current_sub_screen.get_components() + self.components
 
         if self.current_screen != self:
             return_value = self.current_screen.get_components()

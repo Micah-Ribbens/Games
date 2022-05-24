@@ -31,7 +31,6 @@ class GameScreen(Screen):
             returns: None
         """
 
-        game_window.set_screen_visible(self, True)
         pong_type_class = GameModeSelector.get_pong_type()
 
         if GameModeSelector.is_single_player():

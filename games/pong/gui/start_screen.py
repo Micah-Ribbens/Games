@@ -14,7 +14,6 @@ class StartScreen(SubScreen):
     other_sub_screens = []
     sub_screen_buttons = []
 
-
     def __init__(self, length_used_up, height_used_up, other_sub_screens):
         """ summary: initializes the object
 
@@ -54,6 +53,7 @@ class StartScreen(SubScreen):
             if button_clicked.text == sub_screen.name:
                 selected_sub_screen = sub_screen
         return selected_sub_screen
+
 
 
 

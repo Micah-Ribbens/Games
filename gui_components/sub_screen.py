@@ -3,7 +3,7 @@ from base.important_variables import *
 from gui_components.screen import Screen
 
 
-class SubScreen:
+class SubScreen(Screen):
     """A part of a screen"""
 
     components = []

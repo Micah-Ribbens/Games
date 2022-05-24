@@ -4,6 +4,7 @@ from base.velocity_calculator import VelocityCalculator
 from games.minigames.gui.loading_screen import LoadingScreen
 from games.minigames.gui.mini_games_screen import MiniGamesScreen
 from games.minigames.gui.start_screen import StartScreen
+from games.pong.gui.pong_screen import PongScreen
 from gui_components.button import Button
 from gui_components.screen import Screen
 from gui_components.selection_screen import SelectionScreen
@@ -17,6 +18,6 @@ class GameSelectionScreen(SelectionScreen):
     def __init__(self):
         """Initializes the object"""
 
-        screens = [MiniGamesScreen()]
-        screen_names = ["Mini Games"]
+        screens = [MiniGamesScreen(), PongScreen()]
+        screen_names = ["Mini Games", "Pong Reloaded"]
         super().__init__(0, 0, screens, screen_names)
