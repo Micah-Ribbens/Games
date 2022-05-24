@@ -80,8 +80,6 @@ class TextBox(ClickableComponent):
         self.font_ch_length = one_letter.width
         self.font_ch_height = one_letter.height
 
-
-
     def set_font(self, font_size):
         """ summary: changes the text box's font
             

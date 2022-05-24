@@ -6,6 +6,7 @@ class Event:
     """Used to store an event from the current cycle and past cycles (event being anything that is a boolean)"""
 
     name = None
+    current_event = None
 
     def __init__(self):
         self.name = id(self)
@@ -29,6 +30,7 @@ class Event:
             returns: None
         """
         HistoryKeeper.add(event, self.name, False)
+        self.current_event = event
 
     def happened_last_cycle(self):
         """ summary: uses HistoryKeeper.get_last() to get the event from the last cycle and see if it is True
@@ -39,6 +41,11 @@ class Event:
         """
 
         return HistoryKeeper.get_last(self.name)
+
+    def is_click(self):
+        """returns: boolean; if the event is True this cycle and was not last cycle"""
+
+        return self.current_event and not self.happened_last_cycle()
 
 
 class TimedEvent:
@@ -160,5 +167,7 @@ class TimedRange:
 
         last_range = self.ranges[len(self.ranges) - 1]
         return self.current_time > last_range.end
+
+
 
 

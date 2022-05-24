@@ -1,31 +1,25 @@
 import random
-from copy import deepcopy
 import pygame
 
 from base.colors import *
 from base.dimensions import Dimensions
-from base.events import TimedEvent, Event
 from base.important_variables import screen_height, screen_length
-from base.sound_effect import SoundEffect
-from base.utility_functions import get_index_of_range, get_uppercase, get_sublist
+from base.utility_functions import get_uppercase, get_sublist, remove_index
 from base.velocity_calculator import VelocityCalculator
-from gui_components.button import Button
+from gui_components.card import Card
 from gui_components.grid import Grid
 from gui_components.intermediate_screens import IntermediateScreens
-from gui_components.screen import Screen
-from gui_components.sub_screen import SubScreen
 from gui_components.text_box import TextBox
-from base.utility_classes import HistoryKeeper, Range
-from minigames.card_games.word_finder import WordFinder
-from base.utility_functions import string_to_list, list_to_string
+from base.utility_functions import string_to_list
 
-from minigames.card_games.word_game import WordGame
+from games.minigames.card_games.word_game import WordGame
+from utillities.animation import Animation
 
 
 class Wordle(WordGame):
     """Wordle- the best word game ever"""
 
-    max_guesses = 5
+    max_guesses = 7
     word_length = 5
     current_guess = 1
     current_index = 0
@@ -37,7 +31,11 @@ class Wordle(WordGame):
     remaining_length = 0
     keyboard_components = []
     guesses_components = []
+    start_index = 0
+    unlocked_cards = []
+    locked_cards = []
     is_word_indicators = []
+    animation = Animation([.4] * word_length)
 
     def __init__(self, height_used_up, length_used_up):
         """Initializes the object"""
@@ -93,13 +91,15 @@ class Wordle(WordGame):
 
         total_components = self.max_guesses * self.word_length
         for x in range(total_components):
-            self.guesses_components.append(TextBox("", 20, False, black, light_gray))
+            card = Card("", 20, False, black, light_gray)
+            card.set_click_action(self.on_card_click)
+            self.guesses_components.append(card)
             self.guesses_components[x].set_text_is_centered(True)
 
         length_buffer = self.remaining_length * .1
         length = self.remaining_length - length_buffer * 2
         grid = Grid(Dimensions(self.length_used_up + length_buffer, self.height_used_up, length, guesses_height),
-                    self.max_guesses, None, True)
+                    None, self.max_guesses, True)
         grid.turn_into_grid(self.guesses_components[:total_components], None, None)
 
         for x in range(self.max_guesses):
@@ -119,33 +119,69 @@ class Wordle(WordGame):
     def run(self):
         """Runs all the code necessary for the game to work"""
 
-        self.typed_letters += self.get_letters_typed()
         self.run_key_events()
+        self.set_locked_and_unlocked_cards()
         self.run_intermediate_screens()
+        self.animation.run()
 
+        if self.animation.is_done:
+            self.change_letters_typed()
+
+        # Resetting the text for all the text boxes
+        for card in self.unlocked_cards:
+            card.text = ""
+
+        for x in range(len(self.typed_letters)):
+            self.unlocked_cards[x].text = self.typed_letters[x].upper()
+
+        is_word_indicator: TextBox = self.is_word_indicators[self.current_index]
+        is_word_indicator.set_color(green if self.can_submit() else red)
+
+        if self.can_submit() and pygame.key.get_pressed()[pygame.K_RETURN]:
+            self.run_submission()
+
+    def set_locked_and_unlocked_cards(self):
+        """Sets the cards that are locked and unlocked"""
+        current_cards = get_sublist(self.guesses_components, self.current_index * self.word_length, self.word_length)
+        self.unlocked_cards = []
+        self.locked_cards = []
+
+        for card in current_cards:
+            if card.is_locked:
+                self.locked_cards.append(card)
+
+            else:
+                self.unlocked_cards.append(card)
+
+    def on_card_click(self, card):
+        """Runs the code that should be run when a card is clicked"""
+        current_cards = get_sublist(self.guesses_components, self.current_index * self.word_length, self.word_length)
+
+        if card.is_locked and current_cards.__contains__(card):
+            self.locked_cards.remove(card)
+
+        elif current_cards.__contains__(card):
+            self.unlocked_cards.remove(card)
+            self.locked_cards.append(card)
+            self.typed_letters = remove_index(self.typed_letters, current_cards.index(card))
+
+        if current_cards.__contains__(card):
+            card.is_locked = not card.is_locked
+
+    def change_letters_typed(self):
+        """Gets all the letters typed and modifies the attribute 'letters_typed'"""
+
+        self.typed_letters += self.get_letters_typed()
         if pygame.key.get_pressed()[pygame.K_BACKSPACE] and not self.backspace_event.happened_last_cycle():
             # Removes the last letter
             self.typed_letters = self.typed_letters[:-1]
 
-        if len(self.typed_letters) >= self.word_length:
-            self.typed_letters = self.typed_letters[:self.word_length]
+        max_letters = len(self.unlocked_cards)
+
+        if len(self.typed_letters) >= max_letters:
+            self.typed_letters = self.typed_letters[:max_letters]
 
         self.typed_letters = get_uppercase(self.typed_letters)
-
-        current_components = get_sublist(self.guesses_components, self.current_index * self.word_length, self.word_length)
-
-        # Resetting the text for all the text boxes
-        for component in current_components:
-            component.text = ""
-
-        for x in range(len(self.typed_letters)):
-            current_components[x].text = self.typed_letters[x].upper()
-
-        is_word_indicator: TextBox = self.is_word_indicators[self.current_index]
-        is_word_indicator.set_color(green if self.can_submit(self.typed_letters, self.word_length) else red)
-
-        if self.can_submit(self.typed_letters, self.word_length) and pygame.key.get_pressed()[pygame.K_RETURN]:
-            self.run_submission()
 
     def get_components(self):
         """returns: List of Component; the components that should be rendered"""
@@ -156,18 +192,18 @@ class Wordle(WordGame):
     def run_submission(self):
         """Runs all the logic for submitting a guess"""
 
+        self.run_submission_guess()
+
         if get_uppercase(self.word) == get_uppercase(self.typed_letters):
+            print("YOU GOT IT")
             self.intermediate_screens.display(["Congratulations"], [1.5])
 
-        elif self.current_guess >= self.max_guesses:
+        elif self.current_guess > self.max_guesses:
             self.intermediate_screens.display([f"The Word Was {self.word}"], [1.5])
 
         if get_uppercase(self.word) == get_uppercase(self.typed_letters) or self.current_guess >= self.max_guesses:
             self.round_number += 1
             self.reset_everything()
-
-        else:
-            self.run_submission_guess()
 
     def get_keyboard_letter(self, letter):
         """returns: TextBox; the keyboard key associated with that letter"""
@@ -202,33 +238,79 @@ class Wordle(WordGame):
         """Runs all the code for displaying what letters are good and what letters aren't; not used if the player has
            guessed correctly or if they had too many guesses"""
 
-        typed_letters = string_to_list(self.typed_letters)
+        typed_letters = self.get_all_letters()
         word = string_to_list(self.word)
+
         green_letters = []
         current_components = get_sublist(self.guesses_components, self.current_index * self.word_length, self.word_length)
+        colors = [None] * len(typed_letters)
         for x in range(len(typed_letters)):
             if word[x] == typed_letters[x]:
-                green_letters.append(current_components[x])
-                current_components[x].set_color(green)
+                component = current_components[x]
+                green_letters.append(component)
+                colors[x] = green
                 self.get_keyboard_letter(typed_letters[x]).set_color(green)
 
         for green_letter in green_letters:
             word.remove(green_letter.text)
 
         for x in range(len(typed_letters)):
-            if word.__contains__(typed_letters[x]) and not green_letters.__contains__(current_components[x]):
-                current_components[x].set_color(yellow)
+            component = current_components[x]
+            if word.__contains__(typed_letters[x]) and not green_letters.__contains__(component):
+                colors[x] = yellow
                 self.get_keyboard_letter(typed_letters[x]).set_color(yellow)
                 word.remove(typed_letters[x])
 
-            elif not green_letters.__contains__(current_components[x]):
-                current_components[x].set_color(dark_gray)
+            elif not green_letters.__contains__(component):
+                try:
+                    colors[x] = dark_gray
+                except:
+                    print("BAD")
                 self.get_keyboard_letter(typed_letters[x]).set_color(dark_gray)
+
+        for component in self.get_current_components():
+            component.is_locked = False
 
         if not get_uppercase(self.word) == get_uppercase(self.typed_letters) and not self.current_guess >= self.max_guesses:
             self.current_guess += 1
             self.current_index += 1
             self.typed_letters = ""
+
+        print(colors)
+        self.animation.run_animation(current_components, colors, self.set_component_color)
+
+    def set_component_color(self, component, color):
+        """Sets the components color to the color specified"""
+
+        component.set_color(color)
+
+    def reset_cards(self):
+        """Resets the cards after a submission has been run: the locked and unlocked cards"""
+
+        for card in self.locked_cards:
+            card.is_locked = False
+
+        self.locked_cards = []
+        self.unlocked_cards = []
+
+    def can_submit(self):
+        """returns: boolean; if the player can submit their guess"""
+
+        return WordGame.can_submit(self, self.get_all_letters(), self.word_length)
+
+    def get_current_components(self):
+        """returns: List of Card; the current cards that the player is modifying"""
+
+        return get_sublist(self.guesses_components, self.current_index * self.word_length, self.word_length)
+
+    def get_all_letters(self):
+        """returns: String; all the letters"""
+        all_letters = ""
+
+        for component in self.get_current_components():
+            all_letters += component.text
+
+        return all_letters
 
 
 

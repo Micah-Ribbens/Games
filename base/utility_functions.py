@@ -350,4 +350,36 @@ def remove_letter(letters, letter):
 
 
 def get_sublist(items, start, length):
+    """returns: List; the list from start -> start + length"""
+
     return items[start: start + length]
+
+
+def add_ch(string, ch, index):
+    """returns: String; the string with the ch before at the index"""
+
+    new_string = ""
+    for x in range(len(string)):
+        if x == index:
+            new_string += ch
+
+        new_string += string[x]
+
+    return new_string
+
+
+def remove_index(string, index):
+    """returns: String; the string with the ch before at the index"""
+
+    new_string = ""
+    for x in range(len(string)):
+        if x != index:
+            new_string += string[x]
+
+    return new_string
+
+
+def key_is_hit(key):
+    """returns: boolean; if the key has gotten pressed"""
+
+    return pygame.key.get_pressed()[key]

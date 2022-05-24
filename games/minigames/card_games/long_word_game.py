@@ -4,20 +4,16 @@ import pygame
 
 from base.colors import *
 from base.dimensions import Dimensions
-from base.events import TimedEvent, Event
 from base.important_variables import screen_height, screen_length
 from base.utility_functions import get_index_of_range, get_uppercase
 from base.velocity_calculator import VelocityCalculator
 from gui_components.button import Button
 from gui_components.grid import Grid
 from gui_components.intermediate_screens import IntermediateScreens
-from gui_components.screen import Screen
-from gui_components.sub_screen import SubScreen
 from gui_components.text_box import TextBox
-from base.utility_classes import HistoryKeeper, Range
-from minigames.card_games.word_finder import WordFinder
+from base.utility_classes import Range
 from base.utility_functions import string_to_list, list_to_string
-from minigames.card_games.word_game import WordGame
+from games.minigames.card_games.word_game import WordGame
 
 
 class Vowel:

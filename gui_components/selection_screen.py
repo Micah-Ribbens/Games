@@ -39,9 +39,7 @@ class SelectionScreen(SubScreen):
             button = self.buttons[x]
 
             if button.got_clicked():
-                print("BUTTON GOT CLICKED")
                 self.selected_screen = self.screens[x]
-                print(self.selected_screen)
 
     def get_selected_screen(self):
         """returns: SubScreen; the currently selected sub screen"""

@@ -1,15 +1,12 @@
 import time
-from copy import deepcopy
-from timeit import timeit
 
 from base.utility_functions import list_to_string
-from minigames.card_games.letter_generator.utilities import get_letter_combinations, get_all_letter_combinations, \
-    list_already_has_item, remove_duplicates
+from games.minigames.card_games.letter_generator.utilities import get_letter_combinations, get_all_letter_combinations
 
 # Used for finding combinations of letters that produce enough words that the user could find one
 # It will be pretty slow because it is running through all the possible combinations, so be patient
 # Modify the constants to get a different output to the 'word.txt'
-from minigames.card_games.word_finder import WordFinder
+from games.minigames.card_games.word_finder import WordFinder
 
 vowels = "aeiou"
 consonants = "bcdfghjklmnpqrstvwxyz"

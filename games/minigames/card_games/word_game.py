@@ -11,7 +11,7 @@ from gui_components.grid import Grid
 from gui_components.intermediate_screens import IntermediateScreens
 from gui_components.sub_screen import SubScreen
 from gui_components.text_box import TextBox
-from minigames.card_games.word_finder import WordFinder
+from games.minigames.card_games.word_finder import WordFinder
 
 
 class WordGame(SubScreen):

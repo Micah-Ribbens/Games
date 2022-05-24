@@ -1,10 +1,8 @@
 from gui_components.selection_screen import SelectionScreen
-from minigames.card_games.long_word_game import CardGame
-from minigames.card_games.speed_game import SpeedGame
-from minigames.card_games.wordle import Wordle
-from minigames.quick_draw import QuickDraw
-
-
+from games.minigames.card_games.long_word_game import CardGame
+from games.minigames.card_games.speed_game import SpeedGame
+from games.minigames.card_games.wordle import Wordle
+from games.minigames.quick_draw import QuickDraw
 
 class StartScreen(SelectionScreen):
     """The screen that is displayed at the start"""

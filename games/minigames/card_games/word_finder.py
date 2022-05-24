@@ -1,5 +1,5 @@
 from base.utility_functions import get_lowercase, remove_letter
-from minigames.card_games.all_words import all_english_words
+from games.minigames.card_games.all_words import all_english_words
 
 
 class Node:
