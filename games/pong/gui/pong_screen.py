@@ -1,5 +1,7 @@
 from games.pong.gui.game_modes_screen import GameModesScreen
 from games.pong.gui.alter_sizes_screen import AlterSizesScreen
+from games.pong.gui.game_screen import GameScreen
+from games.pong.gui.pause_screen import PauseScreen
 from games.pong.gui.start_screen import StartScreen
 from gui_components.button import Button
 from gui_components.grid import Grid
@@ -19,8 +21,10 @@ class PongScreen(Screen):
     start_button = Button("Start", 20, white, green)
     back_button = Button("Back", 20, white, green)
     game_screen = None
+    current_screen = None
+    pause_screen = None
 
-    def __init__(self, game_screen):
+    def __init__(self):
         """ summary: initializes the object
 
             params:
@@ -29,7 +33,8 @@ class PongScreen(Screen):
             returns: None
         """
 
-        self.game_screen = game_screen
+        self.game_screen = GameScreen()
+        self.pause_screen = PauseScreen()
         button_grid = self.get_button_grid()
         # Other sub screens are the screens which the start screen will have buttons to jump to;
         # They are screen other than start_screen
@@ -44,6 +49,9 @@ class PongScreen(Screen):
 
         self.components = [self.start_button, self.back_button]
         self.current_sub_screen = self.start_screen
+        self.current_screen = self
+
+        game_window.set_screens_visible([self.game_screen, self.pause_screen], False)
 
     def run(self):
         """ summary: runs all the necessary logic in order for the main screen to work
@@ -65,6 +73,16 @@ class PongScreen(Screen):
         if self.current_sub_screen is not None:
             self.current_sub_screen.run()
 
+        new_screen = self.get_screen()
+
+        if new_screen != self.current_screen:
+            self.current_screen.un_setup()
+            new_screen.setup()
+            game_window.display_screen(new_screen)
+            self.current_sub_screen = None
+
+        self.current_screen = new_screen
+
     def get_button_grid(self):
         """ summary: gets the grid that the buttons to navigates screens should be in
             params: None
@@ -75,6 +93,35 @@ class PongScreen(Screen):
         button_grid.turn_into_grid([self.start_button, self.back_button], None, None)
         return button_grid
 
+    def get_screen(self):
+        """returns: Screen; the current screen that should be displayed"""
+
+        action_to_screen = {
+            self.game_screen.is_visible and self.game_screen.pause_button.got_clicked(): self.pause_screen,
+            self.pause_screen.is_visible and self.pause_screen.continue_game_button.got_clicked(): self.game_screen,
+            self.is_visible and self.start_button.got_clicked(): self.game_screen,
+            self.pause_screen.is_visible and self.pause_screen.go_to_start_screen_button.got_clicked(): self.start_screen
+        }
+
+        screen = action_to_screen.get(True)
+        # If none of the actions are True then action_to_screen.get will return None, so the screen stays
+        # As the current_screen
+
+        if screen is not None:
+            print("BAAAD")
+        return screen if screen is not None else self.current_screen
+
+    def get_components(self):
+        """returns: Component[]; the components that should be rendered and ran"""
+
+        return_value = self.components
+        if self.current_sub_screen is not None:
+            return_value += self.current_sub_screen.get_components()
+
+        if self.current_screen != self:
+            return_value = self.current_screen.get_components()
+
+        return return_value
 
 
 

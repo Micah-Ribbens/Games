@@ -66,3 +66,9 @@ class Component(ABC, Dimensions):
 
     def reset(self):
         pass
+
+    def got_clicked(self):
+        """A dummy function for performance; have to use got_clicked() to see which item is selected, so this method
+        by default will return False so I don't have to check the type of each item (performance)"""
+
+        return False

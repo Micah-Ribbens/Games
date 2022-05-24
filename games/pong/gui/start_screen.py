@@ -14,20 +14,6 @@ class StartScreen(SubScreen):
     other_sub_screens = []
     sub_screen_buttons = []
 
-    def get_sub_screen(self, button_clicked):
-        """ summary: gets the sub screen that should currently be displayed after one of the sub screen buttons was clicked
-
-            params:
-                button_clicked: Button; the sub screen button that was clicked
-
-            returns: None
-
-        """
-        selected_sub_screen = None
-        for sub_screen in self.other_sub_screens:
-            if button_clicked.text == sub_screen.name:
-                selected_sub_screen = sub_screen
-        return selected_sub_screen
 
     def __init__(self, length_used_up, height_used_up, other_sub_screens):
         """ summary: initializes the object
@@ -40,8 +26,6 @@ class StartScreen(SubScreen):
             returns: None
         """
         self.other_sub_screens = other_sub_screens
-
-#         TODO make it so it doesn't ignore the length and height used up
 
         for sub_screen in other_sub_screens:
             button = Button(sub_screen.name, 20, white, green)
@@ -56,6 +40,20 @@ class StartScreen(SubScreen):
         max_height = VelocityCalculator.give_measurement(screen_height, 20)
         sub_screen_button_grid.turn_into_grid(self.sub_screen_buttons, None, max_height)
 
+    def get_sub_screen(self, button_clicked):
+        """ summary: gets the sub screen that should currently be displayed after one of the sub screen buttons was clicked
+
+            params:
+                button_clicked: Button; the sub screen button that was clicked
+
+            returns: None
+
+        """
+        selected_sub_screen = None
+        for sub_screen in self.other_sub_screens:
+            if button_clicked.text == sub_screen.name:
+                selected_sub_screen = sub_screen
+        return selected_sub_screen
 
 
 

@@ -32,20 +32,22 @@ class ClickableComponent(Component):
             returns: boolean; if the component got clicked
         """
 
+        mouse_clicked = pygame.mouse.get_pressed()[0]
+
+        # return statement here for performance because the rest of the code does not have to be ran if this is True
+        if not self.is_visible or self.click_event.happened_last_cycle() or not mouse_clicked:
+            return False
+
         is_clicked = True
         area = pygame.Rect(self.x_coordinate, self.y_coordinate, self.length,
                            self.height)
 
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        mouse_clicked = pygame.mouse.get_pressed()[0]
-        # Otherwise if the mouse is held down this is going to be called over and over again
-        if self.click_event.happened_last_cycle():
+
+        if not area.collidepoint(mouse_x, mouse_y):
             is_clicked = False
 
-        if not area.collidepoint(mouse_x, mouse_y) or not mouse_clicked:
-            is_clicked = False
-
-        return is_clicked and self.is_visible
+        return is_clicked
 
     def render(self):
         pass

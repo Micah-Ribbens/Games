@@ -41,7 +41,7 @@ class TextBox(ClickableComponent):
     unexpanded_dimensions = None
     previous_components = None
     is_expanded = False
-    text_is_centered = False
+    text_is_centered = True
 
     def dict_keys_to_list(self, dict_keys):
         """ summary: turns dict_keys into a list by iterating over each dict_key and adding it to a list
@@ -81,6 +81,7 @@ class TextBox(ClickableComponent):
         self.font_ch_height = one_letter.height
         self.initialize_keys()
 
+        print("INIT")
     def set_font(self, font_size):
         """ summary: changes the text box's font
             
@@ -305,9 +306,7 @@ class TextBox(ClickableComponent):
     def initialize_keys(self):
         """Initializes everything needed to be able to get keyboard input; MUST ONLY be called if the text box is editable"""
 
-        self.keys = self.dict_keys_to_list(self.key_to_letter.keys())
-        for x in range(len(self.keys)):
-            self.key_events.append(Event())
+        self.key_events = [Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event(), Event()]
 
         self.delete_event = Event()
         self.ctrl_v_event = Event()

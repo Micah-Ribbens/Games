@@ -110,6 +110,8 @@ class GameObject(Component):
 class Ellipse(GameObject):
     """A GameObject this is elliptical"""
 
+    is_outline = False
+
     def render(self):
         """ summary: Draws the ellipse onto the screen based upon these values:
             x_coordinate, y_coordinate, length, height, and color

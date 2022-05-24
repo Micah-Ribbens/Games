@@ -1,15 +1,15 @@
-from base_pong.equations import Point
-from base_pong.events import Event
-from base_pong.path import VelocityPath
-from base_pong.players import AI, AIDifficulty
-from base_pong.utility_classes import HistoryKeeper
-from base_pong.engines import CollisionsFinder
-from base_pong.ball import Ball
-from base_pong.velocity_calculator import VelocityCalculator
-from pong_types.pong_type import PongType
-from pong_types.normal_pong import NormalPong
-from base_pong.score_keeper import ScoreKeeper
-from base_pong.colors import red, white
+from base.equations import Point
+from base.events import Event
+from base.path import VelocityPath
+from games.pong.base_pong.players import AI, AIDifficulty
+from base.utility_classes import HistoryKeeper
+from base.engines import CollisionsFinder
+from games.pong.base_pong.ball import Ball
+from base.velocity_calculator import VelocityCalculator
+from games.pong.pong_types.pong_type import PongType
+from games.pong.pong_types.normal_pong import NormalPong
+from games.pong.base_pong.score_keeper import ScoreKeeper
+from base.colors import red, white
 from copy import deepcopy
 
 

@@ -1,7 +1,5 @@
 import pygame
 
-from gui_components.clickable_component import ClickableComponent
-
 
 class Window:
     """Shows everything onto the users screen through adding components to it and displaying those added components"""
@@ -68,18 +66,6 @@ class Window:
 
         self.components.remove(component)
 
-    def component_is_selected(self, component):
-        """ summary: finds out of the component is selected by seeing if it got clicked
-            catches the Error if the component isn't of the type ClickableComponent
-
-            params:
-                component: Component; the component that is being tested if it is selected
-
-            returns: boolean; if the component got clicked this cycle (False if component isn't of type ClickableComponent)
-        """
-
-        return isinstance(component, ClickableComponent) and component.got_clicked()
-
     def run(self):
         """ summary: calls Component.run() for every component in Window.components and only calls Component.render() if the component is_visible
             params: None
@@ -97,13 +83,13 @@ class Window:
             
             all_components += screen.get_components()
             for component in screen.get_components():
-                if self.component_is_selected(component):
+                if component.got_clicked():
                     selected_component = component
                 
                 if component.is_runnable:
                     component.run()
                 
-                if component.is_visible():
+                if component.is_visible:
                     component.render()
 
         for component in self.components:

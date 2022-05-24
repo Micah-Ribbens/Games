@@ -1,9 +1,9 @@
 from gui_components.clickable_component import ClickableComponent
 from gui_components.text_box import TextBox
-from base_pong.drawable_objects import GameObject
-from base_pong.colors import *
-from base_pong.important_variables import *
-from base_pong.utility_functions import percentages_to_numbers
+from base.drawable_objects import GameObject
+from base.colors import *
+from base.important_variables import *
+from base.utility_functions import percentages_to_numbers
 
 
 class DropDownMenu(ClickableComponent):
@@ -11,6 +11,8 @@ class DropDownMenu(ClickableComponent):
 
     items = []
     portions = []
+    title_portion = None
+    text_portion = None
     text_color = None
     background_color = None
     font_size = 0
@@ -24,28 +26,6 @@ class DropDownMenu(ClickableComponent):
     item_height = 0
     buffer_height = 0
     item_height_is_set = False
-
-    def get_selected_item(self):
-        """ summary: gets the selected item from the drop down menu and returns it
-            params: None
-            returns: String; the drop down menu's selected item
-        """
-
-        return self.selected_item
-
-    def add_item(self, text):
-        """ summary: adds the item to the drop down menu
-
-            params:
-                text; String; the text of the item
-
-            returns: None
-        """
-
-        item = TextBox(text, self.font_size, False,
-                       self.text_color, self.background_color)
-
-        self.items.append(item)
 
     def __init__(self, title, item_names, text_color, background_color, font_size, selected_index):
         """ summary: initializes the object
@@ -71,11 +51,36 @@ class DropDownMenu(ClickableComponent):
         # This sets the text that is selected automatically without the user's input
         self.text = item_names[selected_index]
         self.selected_item = item_names[selected_index]
+        self.text_portion = TextBox(self.text, font_size, False, text_color, background_color)
+        self.title_portion = TextBox(self.title, font_size, False, text_color, background_color)
 
         for item_name in item_names:
             self.add_item(item_name)
 
         ClickableComponent.__init__(self)
+
+    def get_selected_item(self):
+        """ summary: gets the selected item from the drop down menu and returns it
+            params: None
+            returns: String; the drop down menu's selected item
+        """
+
+        return self.selected_item
+
+    def add_item(self, text):
+        """ summary: adds the item to the drop down menu
+
+            params:
+                text; String; the text of the item
+
+            returns: None
+        """
+
+        item = TextBox(text, self.font_size, False,
+                       self.text_color, self.background_color)
+
+        self.items.append(item)
+
 
     def run(self):
         """ summary: runs the expansion and un expansion logic of the drop down menu
@@ -109,17 +114,12 @@ class DropDownMenu(ClickableComponent):
         if self.clickable_component is not None:
             self.clickable_component.run()
 
-    def get_title_portion(self):
-        """ summary: creates a title portion of the drop down menu then returns it
-            params: None
-            returns: TextBox; the title portion of the drop down menu
-        """
+    def update_title_portion(self):
+        """Updates the title portion of the drop down menu (the text and location of it)"""
 
-        title_portion = TextBox(self.title, self.font_size, False, self.text_color, background_color)
-        title_portion.number_set_dimensions(self.x_coordinate, self.y_coordinate, self.length, self.item_height)
-        title_portion.is_centered = True
-
-        return title_portion
+        self.title_portion.text = self.title
+        self.title_portion.number_set_dimensions(self.x_coordinate, self.y_coordinate, self.length, self.item_height)
+        self.title_portion.is_centered = True
 
     def render(self):
         """ summary: renders the drop down menu
@@ -127,13 +127,13 @@ class DropDownMenu(ClickableComponent):
             returns: None
         """
 
-        title_portion = self.get_title_portion()
-        last_item = title_portion
+        self.update_title_portion()
+        last_item = self.title_portion
         # Divided into two sections; the text portion and the arrow showing portion
         text_portion_length = self.length * .9
-        text_portion = TextBox(self.text, self.font_size, False, self.text_color, self.background_color)
+        self.text_portion.text = self.text
 
-        text_portion.number_set_dimensions(self.x_coordinate, last_item.bottom, text_portion_length, self.item_height)
+        self.text_portion.number_set_dimensions(self.x_coordinate, last_item.bottom, text_portion_length, self.item_height)
 
         # So it doesn't reset the clickable component every cycle making it impossible to tell if the component got clicked
         if self.clickable_component is None:
@@ -141,19 +141,19 @@ class DropDownMenu(ClickableComponent):
 
         # Makes sure the clickable component's height is never 0
         if self.clickable_component is not None:
-            self.clickable_component.number_set_dimensions(text_portion.x_coordinate, text_portion.y_coordinate, self.length, title_portion.height)
+            self.clickable_component.number_set_dimensions(self.text_portion.x_coordinate, self.text_portion.y_coordinate, self.length, self.title_portion.height)
 
         # Creates a divider between the text and the arrow
         divider_length = self.length * .02
-        divider = GameObject(text_portion.right_edge, last_item.bottom, self.item_height, divider_length, white)
+        divider = GameObject(self.text_portion.right_edge, last_item.bottom, self.item_height, divider_length, white)
 
         used_up_length = divider_length + text_portion_length
 
         remaining_length = self.length - used_up_length
 
-        text_portion.render()
+        self.text_portion.render()
         divider.render()
-        title_portion.render()
+        self.title_portion.render()
         self.render_arrow_portion(remaining_length, divider.right_edge, last_item.bottom)
 
         if self.is_expanded:
@@ -238,7 +238,7 @@ class DropDownMenu(ClickableComponent):
 
         is_clicked = False
         for item in self.items:
-            if item.got_clicked():
+            if self.is_expanded and item.got_clicked():
                 is_clicked = True
 
         return is_clicked

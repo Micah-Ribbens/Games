@@ -63,8 +63,6 @@ class MiniGamesScreen(Screen):
         if self.current_sub_screen is not None:
             self.current_sub_screen.run()
 
-        print("MEEESA RAN")
-
     def get_components(self):
         """returns: List of Component; all the components of the screen that should be displayed"""
 
