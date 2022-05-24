@@ -38,6 +38,8 @@ class LineSegment:
     # If it is either a x_equals or y_equals then these will not be None
     x_equals = None
     y_equals = None
+    is_vertical = False
+    is_horizontal = False
 
     def __init__(self, start_point: Point, end_point: Point):
         """ summary: initializes the object
@@ -50,10 +52,12 @@ class LineSegment:
         """
         # Added .01, so elsewhere when I am doing collisions I don't have to worry about straight lines :)
         if start_point.x_coordinate == end_point.x_coordinate:
-            end_point.x_coordinate += .00000001
+            end_point.x_coordinate += .0000000001
+            self.is_vertical = True
 
         if start_point.y_coordinate == end_point.y_coordinate:
-            end_point.y_coordinate += .00000001
+            end_point.y_coordinate += .0000000001
+            self.is_horizontal = True
 
         self.slope = (start_point.y_coordinate - end_point.y_coordinate) / (start_point.x_coordinate - end_point.x_coordinate)
         self.y_intercept = start_point.y_coordinate - self.slope * start_point.x_coordinate
@@ -64,9 +68,10 @@ class LineSegment:
     def render(self):
         """Renders the object"""
 
+        line_height = 3
         pygame.draw_py.draw_line(game_window.get_window(), self.color,
-                                 (int(self.start_point.x_coordinate), int(self.start_point.y_coordinate)),
-                                 (int(self.end_point.x_coordinate), int(self.end_point.y_coordinate)), 9)
+                                 (int(self.start_point.x_coordinate), int(self.start_point.y_coordinate) - line_height),
+                                 (int(self.end_point.x_coordinate), int(self.end_point.y_coordinate) - line_height), line_height)
 
     def get_y_coordinate(self, x_coordinate):
         """ summary: finds the y_coordinate using the equation y = mx + b
@@ -94,16 +99,6 @@ class LineSegment:
         """returns: boolean; if the slope is >= 0"""
 
         return self.slope >= 0
-
-    def is_x_equals_line(self):
-        """returns: boolean; if the line is something like 'x = 6'"""
-
-        return self.start_point.x_coordinate == self.end_point.x_coordinate
-
-    def is_y_equals_line(self):
-        """returns: boolean; if the line is something like 'y = 6'"""
-
-        return self.start_point.y_coordinate == self.end_point.y_coordinate
 
     def get_x_min_and_max(self):
         """returns: [min x coordinate, max x coordinate]"""
@@ -138,40 +133,45 @@ class LineSegment:
         y_is_on_line = is_between_values(y_min, y_max, point.y_coordinate, amount_can_be_off_by)
         x_and_y_are_on_line = x_is_on_line and y_is_on_line
 
-        return x_and_y_are_on_line and is_within_range(self.get_y_coordinate(point.x_coordinate), point.y_coordinate, amount_can_be_off_by)
+        return_value = None
 
-    def get_line_segment(game_object, objects_velocity, is_increasing, is_horizontal):
+        if self.is_vertical or self.is_horizontal:
+            return_value = x_and_y_are_on_line
+
+        else:
+            return_value = x_and_y_are_on_line and is_within_range(self.get_y_coordinate(point.x_coordinate), point.y_coordinate, amount_can_be_off_by)
+        return return_value
+
+    def get_line_segment(game_object, objects_velocity, is_using_larger_coordinate, is_horizontal):
         """ summary: None
 
             params:
                 game_object: GameObject; the object that is moving
                 objects_velocity: double; the velocity of the game_object
-                is_increasing: boolean; whether the game_object's coordinates are increasing
+                is_using_larger_coordinate: boolean; whether coordinates that are being used should be the larger coordinate
                 is_horizontal; boolean; whether the line is based on the game_object's x coordinate
 
             returns: LineSegment; a line that is uses time as the x axis and the coordinate as the y axis
         """
 
-        start_coordinate = game_object.right_edge if is_increasing else game_object.x_coordinate
+        start_coordinate = game_object.right_edge if is_using_larger_coordinate else game_object.x_coordinate
+
         if not is_horizontal:
-            start_coordinate = game_object.bottom if is_increasing else game_object.y_coordinate
+            start_coordinate = game_object.bottom if is_using_larger_coordinate else game_object.y_coordinate
 
         # The time is the x axis and the coordinate is the y axis
         start_point = Point(0, start_coordinate)
         total_time = 10
-        displacement = total_time * objects_velocity if is_increasing else -objects_velocity * total_time
+        displacement = total_time * objects_velocity if is_using_larger_coordinate else -objects_velocity * total_time
         end_point = Point(total_time, start_coordinate + displacement)
 
         return LineSegment(start_point, end_point)
 
+    def contains_x_coordinate(self, x_coordinate):
+        """returns: boolean; if this line contains the x_coordinate"""
+
+        x_min, x_max = self.get_x_min_and_max()
+        return is_between_values(x_min, x_max, x_coordinate, 1)
+
     def __str__(self):
         return f"{self.start_point} -> {self.end_point}"
-
-
-class CollisionLine(LineSegment):
-    is_bottom_line = False
-
-    def __init__(self, line, is_bottom_line):
-        super().__init__(line.start_point, line.end_point)
-
-        self.is_bottom_line = is_bottom_line

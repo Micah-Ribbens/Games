@@ -79,6 +79,7 @@ class TextBox(ClickableComponent):
         one_letter = one_letter_text.get_rect()
         self.font_ch_length = one_letter.width
         self.font_ch_height = one_letter.height
+        self.initialize_keys()
 
     def set_font(self, font_size):
         """ summary: changes the text box's font
@@ -213,6 +214,7 @@ class TextBox(ClickableComponent):
         """
 
         ClickableComponent.run(self)
+
         if self.is_editable:
             self.run_keys()
 
@@ -236,20 +238,13 @@ class TextBox(ClickableComponent):
 
         expand_key_clicked = controls[pygame.K_e] and mods & pygame.KMOD_CTRL
 
-        # TODO fix expanding and unexpanding
-        # if expand_key_clicked and self.is_expanded and not self.expand_key_event.is_continuous(expand_key_clicked):
-        #     self.unexpand()
-        #
-        # elif expand_key_clicked and not self.is_expanded and not self.expand_key_event.is_continuous(expand_key_clicked):
-        #     self.expand()
-
     def unexpand(self):
         """ summary: unexpands the textbox and reverts the game window to where it was before the expansion of the text box
             params: None
             returns: None
         """
         for component in self.previous_components:
-            game_window.set_visible([component], component.is_visible)
+            game_window.set_component_visible([component], component.is_visible)
 
         self.set_dimensions(self.unexpanded_dimensions)
         self.is_expanded = False

@@ -43,58 +43,6 @@ class GameObject(Component):
     name = ""
     attributes = []
     
-    def run(self):
-        pass
-
-    def get_x_coordinates(self):
-        """ summary: uses get_coordinates() and passes x_coordinate for min and right_edge for max as parameters
-            params: None
-            returns: list of int; all of an object's x_coordinates (x_coordinate - right_edge)
-        """
-
-        return self.get_coordinates(self.x_coordinate, self.right_edge)
-    
-    def get_y_coordinate_min(self, x_coordinate):
-        """ summary: None
-
-            params:
-                x_coordinate: double; the x_coordinate that is being used to get the minimum y_coordinate
-
-            returns: returns the minimum y_coordinate at the x_coordinate
-        """
-
-        return self.y_coordinate
-
-    def get_y_coordinate_max(self, x_coordinate):
-        """ summary: None
-
-            params:
-                x_coordinate: double; the x_coordinate that is being used to get the minimum y_coordinate
-
-            returns: returns the maximum y_coordinate at the x_coordinate
-        """
-
-        return self.bottom
-
-    def get_coordinates(self, min, max):
-        """summary: keeps the type of min and max (int, float, etc.) and the numbers in between min and max are are int
-
-            params: 
-                min: int/float; the minimum coordinate that the range of coordinates starts at
-                max: int/float; the maximum coordinate that the range of coordinates ends at
-            
-            returns: list of int; the coordinates from min-max (including min and max)
-        """
-
-        coordinates = [min]
-        # Have to turn min and max into an int to use the "for x in range() loop"
-        min = int(min) + 1
-        coordinates_between_max_and_min = int(max) + 1 - min
-        for x in range(coordinates_between_max_and_min):
-            coordinates.append(x + min)
-
-        return coordinates + [max]
-
     def __init__(self, x_coordinate=0, y_coordinate=0, height=0, length=0, color=(0, 0, 0)):
         """summary: Initializes the object with the numbers (int) and color (RGB tuple) provided
 
@@ -104,7 +52,7 @@ class GameObject(Component):
                 height: int; the height (in pixels) of the game_object
                 length: int; the length (in pixels) of the game_object
                 color: tuple; the (Red, Green, Blue) values of the game_object for color
-            
+
 
             returns: None
             """
@@ -112,8 +60,12 @@ class GameObject(Component):
         super().__init__(x_coordinate, y_coordinate, length, height)
         self.color = color
 
+    def run(self):
+        pass
+
+
     def render(self):
-        """ summary: draws the game_object on to the game_window using the variables provided in __init__ 
+        """ summary: draws the game_object on to the game_window using the variables provided in __init__
             (x_coordinate, y_coordinate, length, height, and color)
 
             params: None
@@ -165,8 +117,19 @@ class Ellipse(GameObject):
             params: None
             returns: None
         """
-        pygame.draw.ellipse(game_window.get_window(), self.color, (self.x_coordinate,
-                            self.y_coordinate, self.length, self.height))
+
+        if self.is_outline:
+            outline_length = self.length * .1
+            outline_height = self.height * .1
+            pygame.draw.ellipse(game_window.get_window(), self.color, (self.x_coordinate + outline_length,
+                                self.y_coordinate + outline_height, self.length - outline_length, self.height - outline_height))
+
+            pygame.draw.ellipse(game_window.get_window(), self.color, (self.x_coordinate,
+                                self.y_coordinate, self.length, self.height))
+
+        else:
+            pygame.draw.ellipse(game_window.get_window(), self.color, (self.x_coordinate,
+                                self.y_coordinate, self.length, self.height))
 
     def get_equation_variables(self):
         """ summary: finds the equations for this equation of an ellipse: (x - h)^2 / a^2 + (y - k)^2 / b^2 = 1
@@ -210,24 +173,3 @@ class Ellipse(GameObject):
         y_max = -sqrt(right_side) + k
 
         return [y_min, y_max]
-
-    def get_y_coordinate_min(self, x_coordinate):
-        """ summary: overrides GameObject.get_y_coordinate_max(); calls get_y_coordinate_min_and_max() to the y_coordinate max
-
-            params:
-                x_coordinate: double; the x_coordinate that is used to find the min and max y_coordinate
-
-            returns: double; the max y_coordinate at the x_coordinate
-        """
-        return self.get_y_coordinate_min_and_max(x_coordinate)[0]
-
-    def get_y_coordinate_max(self, x_coordinate):
-        """ summary: overrides GameObject.get_y_coordinate_max(); calls get_y_coordinate_min_and_max() to the y_coordinate min
-
-            params:
-                x_coordinate: double; the x_coordinate that is used to find the min and max y_coordinate
-
-            returns: double; the min y_coordinate at the x_coordinate
-        """
-        return self.get_y_coordinate_min_and_max(x_coordinate)[1]
-

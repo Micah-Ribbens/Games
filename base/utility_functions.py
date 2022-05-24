@@ -1,8 +1,10 @@
 from math import sqrt
+from random import randint
 
 import pygame
 
 from base.important_variables import game_window, screen_length, screen_height, background_color
+from base.utility_classes import Fraction
 
 
 def change_attributes(modified_object, object, attributes):
@@ -116,13 +118,13 @@ def lists_share_an_item(list1, list2):
 
         returns: boolean; if list1 and list2 share an item
     """
-    is_true = False
+    return_value = False
     for item in list1:
         if list2.__contains__(item):
-            is_true = True
+            return_value = True
             break
 
-    return is_true
+    return return_value
 
 
 def remove_last_ch(string):
@@ -197,6 +199,7 @@ def solve_quadratic(a, b, c):
                 and if the answer is an imaginary number it returns: float('nan')"""
 
     number_under_square_root = pow(b, 2) - 4 * a * c
+    number_under_square_root = rounded(number_under_square_root, 4)
 
     if number_under_square_root < 0:
         return None
@@ -205,8 +208,11 @@ def solve_quadratic(a, b, c):
 
     answer1 = (-b + square_root) / (2 * a)
     answer2 = (-b - square_root) / (2 * a)
-    return [answer2, answer1]
 
+    answers = [answer2, answer1]
+
+    # If the answers are the same I should only return one of them
+    return answers if answers[0] != answers[1] else [answers[0]]
 
 
 def min_value(item1, item2):
@@ -284,6 +290,26 @@ def values_are_equal(object1, object2, attributes):
     return return_value
 
 
+def rounded(number, places):
+    """returns: double; the number rounded to that many decimal places"""
+
+    rounded_number = int(number * pow(10, places))
+
+    # Converting it back to the proper decimals once it gets rounded from above
+    return rounded_number / pow(10, places)
+
+
+def get_next_index(current_index, max_index):
+    next_index = current_index + 1
+    return next_index if next_index <= max_index else 0
+
+
+def get_prev_index(current_index, max_index):
+    prev_index = current_index - 1
+
+    return prev_index if prev_index > 0 else max_index
+
+
 def get_index_of_range(ranges, number):
     """returns: int; the index of the range that has that number"""
 
@@ -293,6 +319,31 @@ def get_index_of_range(ranges, number):
             return_value = x
 
     return return_value
+
+
+def get_min_list_item(items):
+    """returns: double; the minimum item in the list"""
+
+    min_item = float('inf')
+
+    for item in items:
+        if item < min_item:
+            min_item = item
+
+    return min_item
+
+
+def is_random_chance(probability: Fraction):
+    """ summary: uses the probability for the random chance (for instance if the probability is 7/10 then 7 out of 10
+        times it will return True and the other 3 times it will return False)
+
+        params:
+            probability: Fraction; the probability this function will return True
+
+        returns: boolean; if the random number between 1-probability.denominator is >= probability.numerator
+    """
+
+    return randint(probability.numerator, probability.denominator) <= probability.numerator
 
 
 def string_to_list(string):
@@ -383,3 +434,16 @@ def key_is_hit(key):
     """returns: boolean; if the key has gotten pressed"""
 
     return pygame.key.get_pressed()[key]
+
+
+def get_random_item(items):
+    """ summary: gets a random index then returns items[index]
+
+        params:
+            items: List; the items that will have a random item returned from it
+
+        returns: Object; a random item from the items
+    """
+    index = randint(0, len(items) - 1)
+
+    return items[index]

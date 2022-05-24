@@ -56,6 +56,7 @@ class Grid:
         item_length = self.get_item_length(columns, item_max_length)
         item_height = self.get_item_height(rows, item_max_height)
         base_y_coordinate = self.dimensions.y_coordinate if self.starts_at_top else self.dimensions.bottom - item_height
+        base_x_coordinate = self.dimensions.x_coordinate
 
         for x in range(self.number_of_items):
             # Both would start at 0 (0 is the first column and row)
@@ -74,7 +75,7 @@ class Grid:
 
             # Multiplying column_number by item_length because each column that is before it increases the x_coordinate that a item should be at
             # For instance, if it is at the 2nd column then one item was before it so it'd be column_number * item_length
-            x_coordinate = (column_number * item_length) + change_from_length_buffer + self.dimensions.x_coordinate
+            x_coordinate = (column_number * item_length) + change_from_length_buffer + base_x_coordinate
             y_coordinate = base_y_coordinate + y_coordinate_change
 
             items[x].number_set_dimensions(x_coordinate, y_coordinate, item_length, item_height)

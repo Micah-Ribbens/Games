@@ -1,9 +1,9 @@
 from gui_components.clickable_component import ClickableComponent
 from gui_components.text_box import TextBox
-from base.drawable_objects import GameObject
-from base.colors import *
-from base.important_variables import *
-from base.utility_functions import percentages_to_numbers
+from base_pong.drawable_objects import GameObject
+from base_pong.colors import *
+from base_pong.important_variables import *
+from base_pong.utility_functions import percentages_to_numbers
 
 
 class DropDownMenu(ClickableComponent):
@@ -21,6 +21,9 @@ class DropDownMenu(ClickableComponent):
     # This is the part of the drop down menu that is supposed to be clicked
     clickable_component = None
     prev_time = 0
+    item_height = 0
+    buffer_height = 0
+    item_height_is_set = False
 
     def get_selected_item(self):
         """ summary: gets the selected item from the drop down menu and returns it
@@ -80,6 +83,12 @@ class DropDownMenu(ClickableComponent):
             returns: None
         """
 
+        if not self.item_height_is_set:
+            self.buffer_height = self.height * .02
+            # The height that remains after the buffer between items is added
+            remaining_height = self.height - (self.buffer_height * len(self.items))
+            self.item_height = remaining_height / (len(self.items) + 1)
+
         # The code below alters is_expanded, so this stores this value
         was_expanded = self.is_expanded
 
@@ -107,7 +116,8 @@ class DropDownMenu(ClickableComponent):
         """
 
         title_portion = TextBox(self.title, self.font_size, False, self.text_color, background_color)
-        title_portion.number_set_dimensions(self.x_coordinate, self.y_coordinate, self.length, self.height)
+        title_portion.number_set_dimensions(self.x_coordinate, self.y_coordinate, self.length, self.item_height)
+        title_portion.is_centered = True
 
         return title_portion
 
@@ -121,21 +131,21 @@ class DropDownMenu(ClickableComponent):
         last_item = title_portion
         # Divided into two sections; the text portion and the arrow showing portion
         text_portion_length = self.length * .9
-        text_portion = TextBox(
-            self.text, self.font_size, False, self.text_color, self.background_color)
+        text_portion = TextBox(self.text, self.font_size, False, self.text_color, self.background_color)
 
-        text_portion.number_set_dimensions(
-            self.x_coordinate, last_item.bottom, text_portion_length, self.height)
+        text_portion.number_set_dimensions(self.x_coordinate, last_item.bottom, text_portion_length, self.item_height)
 
         # So it doesn't reset the clickable component every cycle making it impossible to tell if the component got clicked
         if self.clickable_component is None:
             self.clickable_component = ClickableComponent()
-            self.clickable_component.number_set_dimensions(self.x_coordinate, last_item.bottom, self.length, self.height)
+
+        # Makes sure the clickable component's height is never 0
+        if self.clickable_component is not None:
+            self.clickable_component.number_set_dimensions(text_portion.x_coordinate, text_portion.y_coordinate, self.length, title_portion.height)
 
         # Creates a divider between the text and the arrow
         divider_length = self.length * .02
-        divider = GameObject(text_portion.right_edge, last_item.bottom,
-                             self.height, divider_length, white)
+        divider = GameObject(text_portion.right_edge, last_item.bottom, self.item_height, divider_length, white)
 
         used_up_length = divider_length + text_portion_length
 
@@ -143,8 +153,8 @@ class DropDownMenu(ClickableComponent):
 
         text_portion.render()
         divider.render()
-        self.render_arrow_portion(
-            remaining_length, divider.right_edge, last_item.bottom)
+        title_portion.render()
+        self.render_arrow_portion(remaining_length, divider.right_edge, last_item.bottom)
 
         if self.is_expanded:
             self.render_items(last_item)
@@ -155,8 +165,7 @@ class DropDownMenu(ClickableComponent):
             returns: None
         """
 
-        arrow_container = GameObject(x_coordinate, y_coordinate,
-                                     self.height, remaining_length, self.background_color)
+        arrow_container = GameObject(x_coordinate, y_coordinate, self.item_height, remaining_length, self.background_color)
 
         # From here down is talking about the arrow part
         percent_down = 20
@@ -167,8 +176,7 @@ class DropDownMenu(ClickableComponent):
         percent_length = 100 - (percent_right * 2)
         percent_height = 100 - (percent_down * 2)
 
-        arrow_numbers = percentages_to_numbers(
-            percent_right, percent_down, percent_length, percent_height, remaining_length, self.height)
+        arrow_numbers = percentages_to_numbers(percent_right, percent_down, percent_length, percent_height, remaining_length, self.item_height)
         # number_to_right and number_downwards is how much right and how much down it should be in relation to the component
         number_to_right, number_downwards, length, height = arrow_numbers
 
@@ -178,6 +186,7 @@ class DropDownMenu(ClickableComponent):
 
         # End x coordinate and y coordinate meaning the bottom point of the triangle
         end_y_coordinate = start_y_coordinate + height
+
         # This would be the halfway point of the vertices of the top of the triangle
         end_x_coordinate = start_x_coordinate + (length // 2)
 
@@ -195,12 +204,19 @@ class DropDownMenu(ClickableComponent):
             returns: None
         """
 
-        for item in self.items:
-            buffer_between_items = self.get_buffer_between_items(last_item)
-            item.number_set_dimensions(self.x_coordinate, buffer_between_items.bottom, self.length, self.height)
-            buffer_between_items.render()
-            item.render()
+        for x in range(len(self.items)):
+            item = self.items[x]
 
+            # The first item should not be affected by a buffer
+            if x == 0:
+                item.number_set_dimensions(self.x_coordinate, last_item.bottom, self.length, self.item_height)
+
+            else:
+                buffer_between_items = self.get_buffer_between_items(last_item)
+                item.number_set_dimensions(self.x_coordinate, buffer_between_items.bottom, self.length, self.item_height)
+                buffer_between_items.render()
+
+            item.render()
             last_item = item
 
     def get_buffer_between_items(self, last_item):
@@ -212,7 +228,7 @@ class DropDownMenu(ClickableComponent):
             returns: GameObject; the buffer between the items
         """
 
-        return GameObject(last_item.x_coordinate, last_item.bottom, last_item.height * .1, last_item.length, white)
+        return GameObject(last_item.x_coordinate, last_item.bottom, self.buffer_height, last_item.length, white)
 
     def an_item_got_clicked(self):
         """ summary: iterates over each item in items to check if it got clicked
@@ -237,3 +253,14 @@ class DropDownMenu(ClickableComponent):
         is_clicked = False if self.clickable_component is None else self.clickable_component.got_clicked()
 
         return is_clicked
+
+    def set_item_height(self, number_of_items):
+        """Makes the item height (the components like title and options) become this- calculated from the number of items
+        meaning it will figure out the item height as if there are that many items"""
+
+        self.item_height_is_set = True
+        self.buffer_height = self.height * .02
+        # The height that remains after the buffer between items is added
+        remaining_height = self.height - (self.buffer_height * number_of_items)
+        self.item_height = remaining_height / (number_of_items + 1)
+

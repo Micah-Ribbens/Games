@@ -1,5 +1,7 @@
 import pygame
 
+from gui_components.clickable_component import ClickableComponent
+
 
 class Window:
     """Shows everything onto the users screen through adding components to it and displaying those added components"""
@@ -32,7 +34,7 @@ class Window:
         pygame.display.set_caption(title)
         self.background_color = background_color
 
-    def add(self, component):
+    def add_component(self, component):
         """ summary: adds the component to the window
 
             params: 
@@ -43,7 +45,7 @@ class Window:
 
         self.components.append(component)
 
-    def add_all(self, components):
+    def add_all_components(self, components):
         """ summary: adds all the components to the window - calls Window.add() for each component in components
 
             params: 
@@ -55,7 +57,7 @@ class Window:
         for component in components:
             self.components.append(component)
 
-    def remove(self, component):
+    def remove_component(self, component):
         """ summary: removes the component from the window
 
             params: 
@@ -76,16 +78,7 @@ class Window:
             returns: boolean; if the component got clicked this cycle (False if component isn't of type ClickableComponent)
         """
 
-        is_selected = False
-        try:
-            if component.got_clicked():
-                is_selected = True
-
-        # Not all components are of type ClickableComponent, so this catches that error
-        # Needs to be ClickableComponent since code calls got_clicked(), which only ClickableComponent has
-        except AttributeError:
-            pass
-        return is_selected
+        return isinstance(component, ClickableComponent) and component.got_clicked()
 
     def run(self):
         """ summary: calls Component.run() for every component in Window.components and only calls Component.render() if the component is_visible
@@ -93,34 +86,45 @@ class Window:
             returns: None
         """
         self.get_window().fill(self.background_color)
+        selected_component = None
+        all_components = []
         for screen in self.screens:
             if screen.is_visible:
                 screen.run()
 
             else:
                 continue
-
+            
+            all_components += screen.get_components()
             for component in screen.get_components():
+                if self.component_is_selected(component):
+                    selected_component = component
+                
                 if component.is_runnable:
                     component.run()
-
-
-                component.render()
+                
+                if component.is_visible():
+                    component.render()
 
         for component in self.components:
             # Only visible components should be displayed onto the screen
             if component.is_visible:
                 component.render()
 
-            else:
-                continue
-
-            if component.is_runnable:
+            if component.is_runnable and component.is_visible:
                 component.run()
+        
+        for component in all_components + self.components:
+            if selected_component is not None:
+                component.is_selected = False
+
+        # All component's is_selected is set to False so this sets the selected_component.is_selected to True
+        if selected_component is not None:
+            selected_component.is_selected = True
 
         pygame.display.update()
 
-    def set_visible(self, components, is_visible):
+    def set_component_visible(self, components, is_visible):
         """ summary: sets is_visible in all the components in components to the value passed in the parameter is_visible
 
             params:
@@ -147,6 +151,7 @@ class Window:
         for screen in self.screens:
             if screen != visible_screen:
                 screen.is_visible = False
+
             else:
                 screen.is_visible = True
 
@@ -195,6 +200,10 @@ class Window:
 
         for component in screen.get_components():
             component.is_visible = is_visible
+
+        for screen in self.screens:
+            screen.is_visible = False
+
         screen.is_visible = is_visible
 
     def set_screens_visible(self, screens, is_visible):
@@ -206,6 +215,10 @@ class Window:
 
             returns: None
         """
+
+        for screen in self.screens:
+            screen.is_visible = False
+
         for screen in screens:
             self.set_screen_visible(screen, is_visible)
 

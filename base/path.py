@@ -1,9 +1,9 @@
-from math import sqrt
+from copy import deepcopy
 
-import pygame.draw_py
 from base.equations import LineSegment, Point
 from base.utility_functions import max_value, get_leftmost_object, get_distance
 from base.velocity_calculator import VelocityCalculator
+from gui_components.component import Component
 
 
 class PathLine:
@@ -27,8 +27,8 @@ class PathLine:
         self.bottom_line = LineSegment(Point(self.y_coordinate_line.start_point.x_coordinate, self.y_coordinate_line.start_point.y_coordinate + height),
                                        Point(self.y_coordinate_line.end_point.x_coordinate, self.y_coordinate_line.end_point.y_coordinate + height))
 
-# TODO rethink how paths work: 3-11-2022
-class Path:
+
+class Path(Component):
     """Stores the path of an object"""
 
     path_lines = []
@@ -81,14 +81,11 @@ class Path:
     def get_end_points(self):
         """returns: List of Point; [y_coordinate end point, bottom end point] for the last y_coordinate_line and bottom_line
         in the attribute 'path_lines'"""
-        try:
-            last_index = len(self.path_lines) - 1
-            y_coordinate_point = self.path_lines[last_index].y_coordinate_line.end_point
-            bottom_point = self.path_lines[last_index].bottom_line.end_point
-            return [y_coordinate_point, bottom_point]
 
-        except:
-            pass
+        last_index = len(self.path_lines) - 1
+        y_coordinate_point = self.path_lines[last_index].y_coordinate_line.end_point
+        bottom_point = self.path_lines[last_index].bottom_line.end_point
+        return [y_coordinate_point, bottom_point]
 
     def get_y_coordinate(self, x_coordinate):
         """returns: double; the y_coordinate at that x_coordinate"""
@@ -125,8 +122,87 @@ class Path:
 
         return lines
 
+    def run(self):
+        pass
 
+    def get_coordinates(self, times, line_type, coordinate_type):
+        """summary: finds the coordinates of the specified type using the line_type and coordinate_type
 
+            params:
+                times: Double[]; the times at each transition of the path
+                line_type: String; either 'y_coordinate_line' or 'bottom_line'
+                coordinate_type: String; either 'x_coordinate' or 'y_coordinate'
+
+            returns: SimplePath; the coordinates in relation to time
+        """
+
+        return_value = SimplePath()
+        for x in range(len(self.path_lines)):
+            line = self.path_lines[x].__dict__[line_type]
+            time = times[x]
+
+            return_value.add_point(time, line.start_point.__dict__[coordinate_type])
+
+        last_line = self.path_lines[len(self.path_lines) - 1].__dict__[line_type]
+        last_time = times[len(times) - 1]
+        return_value.add_point(last_time, last_line.end_point.__dict__[coordinate_type])
+
+class SimplePath:
+    """A simple path that doesn't care about length or height of the object"""
+
+    lines = []
+    last_point = None
+
+    def __init__(self, start_point=None):
+        """Initializes the object"""
+
+        self.last_point = start_point
+        self.lines = []
+
+    def add_point(self, point):
+        """Adds the point to this path"""
+
+        if self.last_point is not None:
+            self.lines.append(LineSegment(self.last_point, point))
+            self.last_point = point
+
+        else:
+            self.last_point = point
+
+    def get_lines(self):
+        """returns: List of LineSegment; the lines of this simple path"""
+
+        return self.lines
+
+    def get_first_line(self):
+        """returns: Point; the first point of the simple path"""
+
+        return self.get_lines()[0]
+
+    def get_last_line(self):
+        """returns: Point; the last point of the simple path"""
+
+        last_index = len(self.get_lines()) - 1
+        return self.get_lines()[last_index]
+
+    def get_y_coordinate(self, x_coordinate):
+        """returns: double; the y_coordinate at that x_coordinate (MUST be a function though- one x to one y)"""
+
+        return_value = None
+
+        for line in self.lines:
+            if line.contains_x_coordinate(x_coordinate):
+                return_value = line.get_y_coordinate(x_coordinate)
+                break
+
+        return return_value
+
+    def __str__(self):
+        string = ""
+        for x in range(len(self.lines)):
+            string += f"{self.lines[x]} || "
+
+        return string
 
 class VelocityPath(Path):
     """A path that takes into account velocity"""
@@ -139,6 +215,7 @@ class VelocityPath(Path):
     times = []  # Stores the times that the get_coordinates() function was called
     total_time = 0
     last_point = None
+    is_unending = False
 
     def __init__(self, start_point, other_points, velocity):
         """Initializes the object"""
@@ -182,11 +259,16 @@ class VelocityPath(Path):
 
     def get_coordinates(self):
         """returns: [x_coordinate, y_coordinate] for that time"""
-        if not self.times.__contains__(VelocityCalculator.time):
-            self.times.append(VelocityCalculator.time)
-            self.total_time += VelocityCalculator.time
+        self.total_time += VelocityCalculator.time
 
+        max_time = self.last_end_time
 
+        if self.total_time > max_time and self.is_unending:
+            self.total_time %= max_time
+
+        return self._get_coordinates(self.total_time)
+
+    def _get_coordinates(self, time):
         # By default it starts out as the end of the path and if the time falls within the path uses those coordinates
         last_index = len(self.x_coordinate_lines) - 1
         end_x_coordinate = self.x_coordinate_lines[last_index].end_point.y_coordinate
@@ -199,10 +281,19 @@ class VelocityPath(Path):
             start_point = y_coordinate_line.start_point
             end_point = y_coordinate_line.end_point
 
-            if self.total_time >= start_point.x_coordinate and self.total_time <= end_point.x_coordinate:
-                # print(x_coordinate_line, y_coordinate_line)
-                coordinates = [x_coordinate_line.get_y_coordinate(self.total_time), y_coordinate_line.get_y_coordinate(self.total_time)]
+            if time >= start_point.x_coordinate and time <= end_point.x_coordinate:
+                coordinates = [x_coordinate_line.get_y_coordinate(time), y_coordinate_line.get_y_coordinate(time)]
+
         return coordinates
+
+    def set_time(self, time):
+        """Sets the time to the provided 'time'- if it is greater than the max time it is reduced to a smaller time"""
+
+        self.total_time = time % self.max_time
+
+    @property
+    def max_time(self):
+        return self.last_end_time
 
     def __str__(self):
         string = ""
@@ -214,12 +305,136 @@ class VelocityPath(Path):
 
         return string
 
+    @staticmethod
+    def get_paths_from_path(path, times):
+        """returns: List of SimplePath; [x_coordinate_line, right_edge_line, y_coordinate_line, bottom_line]"""
+
+        paths = VelocityPath.get_paths_list()
+
+        elapsed_times = [0] + times # Putting a zero in the front because the first start point must be at zero otherwise it wont be
+
+        for x in range(len(times)):
+            path_line: PathLine = path.path_lines[x].y_coordinate_line
+
+            # TODO figure out if this is sound logic :)
+            VelocityPath.add_point_to_paths(paths, elapsed_times[x], path_line.start_point, path.length, path.height)
+
+        last_path_line = path.path_lines[len(path.path_lines) - 1].y_coordinate_line
+        last_time = times[len(times) - 1]
+
+        # Have to add the end point of the last path line because it gets skipped otherwise (only use start points)
+        VelocityPath.add_point_to_paths(paths, last_time, last_path_line.end_point, path.length, path.height)
+        return paths
+
+    @staticmethod
+    def get_paths_list():
+        """returns: List of SimplePath[4]; a list of simple path each with their own location in memory"""
+
+        number_of_paths = 4
+        return_value = []
+
+        for x in range(number_of_paths):
+            return_value.append(SimplePath())
+
+        return return_value
+
+    def get_paths(self, length, height, total_time):
+        """returns: List of SimplePath; [x_coordinate_line, right_edge_line, y_coordinate_line, bottom_line]"""
+
+        paths = VelocityPath.get_paths_list()
+        important_times, elapsed_times = self._get_times_data(total_time)
+
+        for x in range(len(important_times)):
+            x_coordinate, y_coordinate = self._get_coordinates(important_times[x])
+
+            VelocityPath.add_point_to_paths(paths, elapsed_times[x], Point(x_coordinate, y_coordinate), length, height)
+
+        return paths
+
+    def _get_times_data(self, total_time):
+        """ summary: Finds the important_times and elapsed_times which are complementary to each other. The important times
+            are the times that are important for the path (where it changes direction) and elapsed times is the time that
+            has elapsed relative to the start (whereas important times are in relation to the time of the path checkpoints)
+
+            returns: Double[][]; [important_times, elapsed_times]"""
+
+        important_times = [self.total_time]
+        elapsed_times = [0]
+        time_left = total_time
+        current_time = self.total_time
+        total_elapsed_time = 0
+
+        has_found_range = False # Whether the range that contains self.total_time has been found
+        previous_time = self.total_time
+
+        while time_left != 0:
+            for y_coordinate_line in self.y_coordinate_lines:
+                start_time = y_coordinate_line.start_point.x_coordinate
+                end_time = y_coordinate_line.end_point.x_coordinate
+                line_time = end_time - previous_time
+
+                is_within_range = self.total_time >= start_time and self.total_time <= end_time
+                if not is_within_range and not has_found_range:
+                    previous_time = end_time
+                    continue
+
+                else:
+                    has_found_range = True
+
+                if line_time >= time_left:
+                    total_elapsed_time += time_left
+                    important_times.append(current_time + time_left)
+                    time_left = 0
+
+                else:
+                    important_times.append(current_time + line_time)
+                    current_time = end_time
+                    time_left -= line_time
+                    total_elapsed_time += line_time
+
+                elapsed_times.append(total_elapsed_time)
+                previous_time = end_time
+
+        return [important_times, elapsed_times]
+
+
+    @staticmethod
+    def add_point_to_paths(paths, current_time, point, length, height):
+        """Adds the points to the path; NOTE: paths must be a list like this: [x coordinate line, right edge line,
+            y coordinate line, bottom line]"""
+
+        # x coordinate line
+        paths[0].add_point(Point(current_time, point.x_coordinate))
+
+        # right edge line
+        paths[1].add_point(Point(current_time, point.x_coordinate + length))
+
+        # y coordinate line
+        paths[2].add_point(Point(current_time, point.y_coordinate))
+
+        # bottom line
+        paths[3].add_point(Point(current_time, point.y_coordinate + height))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class ObjectPath(Path):
     """A Path that is specifically for tracking an object from one point to another"""
 
     prev_object = None
     current_object = None
+    is_runnable = False
 
     def __init__(self, prev_object, current_object):
         """initializes the object; does the path that covers the most area of the object"""
@@ -266,16 +481,17 @@ class ObjectPath(Path):
     def get_xy_point(self, line, point):
         line_is_rightwards = line.start_point.x_coordinate < line.end_point.x_coordinate
         is_bottom_line = line.start_point.y_coordinate == self.prev_object.bottom
+        xy_point = deepcopy(point)
 
         if line_is_rightwards:
             # The end point of the line if it is the current_object's right_edge, so substracting the length gets the x cooordinate
-            point.x_coordinate -= self.length
+            xy_point.x_coordinate -= self.length
 
         if is_bottom_line:
             # The line is based off the bottom, so subtracting the height gets the y coordinate
-            point.y_coordinate -= self.height
+            xy_point.y_coordinate -= self.height
 
-        return point
+        return xy_point
 
     def get_end_point(self):
         """returns: Point; the end point of the object"""
@@ -285,7 +501,25 @@ class ObjectPath(Path):
         """returns: double; the total amonut of distance the object has traveled"""
         return get_distance(self.get_start_point(), self.get_end_point())
 
+    def get_lines(self):
+        """returns: List of LineSegment; the lines of the object path"""
 
+        return [
+            LineSegment(Point(self.prev_object.x_coordinate, self.prev_object.y_coordinate), Point(self.current_object.x_coordinate, self.current_object.y_coordinate)),
+            LineSegment(Point(self.prev_object.right_edge, self.prev_object.y_coordinate), Point(self.current_object.right_edge, self.current_object.y_coordinate)),
+            LineSegment(Point(self.prev_object.right_edge, self.prev_object.bottom), Point(self.current_object.right_edge, self.current_object.bottom)),
+            LineSegment(Point(self.prev_object.x_coordinate, self.prev_object.bottom), Point(self.current_object.x_coordinate, self.current_object.bottom)),
+        ]
+
+    def get_x_distance(self):
+        """returns: double; the x distance of the line"""
+        return abs(self.path_line.end_point - self.path_line.start_point.x_coordinate)
+
+    @property
+    def path_line(self):
+        """returns: PathLine; the only path_line since it is an object path"""
+
+        return self.path_lines[0].y_coordinate_line
 
 
 

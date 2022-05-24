@@ -63,3 +63,6 @@ class Component(ABC, Dimensions):
         self.y_coordinate = dimensions.y_coordinate
         self.length = dimensions.length
         self.height = dimensions.height
+
+    def reset(self):
+        pass

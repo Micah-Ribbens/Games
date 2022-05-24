@@ -1,10 +1,6 @@
-from base.drawable_objects import GameObject
-from base.events import Event
-from base.utility_classes import HistoryKeeper
-from base.utility_functions import percentage_to_number
-from base.important_variables import *
 import pygame
 
+from base.events import Event
 from gui_components.component import Component
 
 

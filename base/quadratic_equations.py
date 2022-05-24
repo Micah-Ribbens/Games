@@ -1,5 +1,4 @@
-from base.utility_functions import get_kwarg_item
-
+from base.utility_functions import get_kwarg_item, solve_quadratic
 
 
 class QuadraticEquation:
@@ -157,3 +156,31 @@ class PhysicsEquation:
         final_velocity_squared = pow(self.initial_velocity, 2) + 2 * self.acceleration * displacement
         # Reduces the risk of a rounding error like -1*e^-15 would cause an imaginary number exception
         return pow(int(final_velocity_squared), 1 / 2)
+
+    def get_vertex(self):
+        """returns: double; the vertex of this physics equation"""
+
+        return self.get_distance(self.get_time_to_vertex())
+
+    def get_times_to_point(self, distance):
+        """ summary: finds the number by plugging in 'distance' into the equation 1/2 * at^2 + vt + d
+                     where a is acceleration, t is time, v is initial_velocity, and d is initial_distance
+
+            params:
+                distance: double; the distance that is wanted
+
+            returns: List of double; the times that the parabola is at that y coordinate
+        """
+        return solve_quadratic(1/2 * self.acceleration, self.initial_velocity, self.initial_distance - distance)
+
+    def get_full_cycle_time(self):
+        """returns: double; the amount of time it takes the parabola to go from start_location -> start_location"""
+
+        return self.get_time_to_vertex() * 2
+
+    def __str__(self):
+        return f"[{self.acceleration},{self.initial_velocity},{self.initial_distance},]"
+
+    def __eq__(self, other):
+        return (self.acceleration == other.acceleration and self.initial_velocity == other.initial_velocity and
+                self.initial_distance == other.initial_distance)

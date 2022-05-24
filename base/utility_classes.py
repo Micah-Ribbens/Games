@@ -62,23 +62,6 @@ class HistoryKeeper:
 
         return HistoryKeeper.last_objects.get(f"{name}{HistoryKeeper.last_time}")
 
-    def get_last_time():
-        """ summary: gets the time from the last cycle
-            params: None
-            returns: the time from the last cycle
-        """
-        last_time = 0
-        for x in range(len(HistoryKeeper.times)):
-            # Length and last index are off by one, so have to minus one to not get a IndexError
-            time = HistoryKeeper.times[len(HistoryKeeper.times) - 1 - x]
-            # Meaning we found the last time since we are iterating over all cycle times backwards
-            if time != VelocityCalculator.time:
-                last_time = time
-                break
-
-        return last_time
-
-
 class Fraction:
     """Has a numerator and a denominator along with utility functions that go along with fractions"""
     numerator = None
