@@ -10,6 +10,7 @@ class PongType(abc.ABC):
     player1 = None
     player2 = None
     ball = None
+    is_single_player = False
 
     def __init__(self, player1, player2, ball):
         """ summary: Initializes the PongType with the needed objects to run its methods
@@ -118,6 +119,7 @@ class PongType(abc.ABC):
 
         ball_forwards_velocity = ball_forwards_velocity if ball_forwards_velocity is not None else self.ball.forwards_velocity
         path = Path(Point(ball_x_coordinate, ball_y_coordinate), self.ball.height, self.ball.length)
+        ball_is_moving_right = end_x_coordinate > ball_x_coordinate
 
         time_to_travel_distance = abs(end_x_coordinate - ball_x_coordinate) / ball_forwards_velocity
         times = []
@@ -144,7 +146,9 @@ class PongType(abc.ABC):
                 ball_is_moving_down = not ball_is_moving_down
 
             ball_y_coordinate += displacement
-            ball_x_coordinate += time * ball_forwards_velocity
+
+            x_displacement = time * ball_forwards_velocity
+            ball_x_coordinate += x_displacement if ball_is_moving_right else -x_displacement
 
             path.add_point(Point(ball_x_coordinate, ball_y_coordinate))
 

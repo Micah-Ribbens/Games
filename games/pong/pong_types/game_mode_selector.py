@@ -15,7 +15,7 @@ class GameModeSelector:
     game_mode = "Pick Pong Type"
     # If a pong_type isn't selected from the gui, then the game mode will be Normal Pong
     pong_type = "Omnidirectional Pong"
-    number_of_players = "2 Player"
+    number_of_players = "Single Player"
 
     all_game_modes = ["Chaos", "Civilized",
                       "Unique Twist", "Random", "Pick Pong Type"]

@@ -159,19 +159,23 @@ class LineSegment:
         if not is_horizontal:
             start_coordinate = game_object.bottom if is_using_larger_coordinate else game_object.y_coordinate
 
-        # The time is the x axis and the coordinate is the y axis
+        return LineSegment.get_line_segment_using_coordinates(start_coordinate, objects_velocity, is_using_larger_coordinate)
+
+    def get_line_segment_using_coordinates(start_coordinate, velocity, is_increasing):
+        """returns: LineSegment; a line that uses time as the x axis and the coordinates as the y axis"""
+
         start_point = Point(0, start_coordinate)
         total_time = 10
-        displacement = total_time * objects_velocity if is_using_larger_coordinate else -objects_velocity * total_time
+        displacement = total_time * velocity if is_increasing else total_time * -velocity
         end_point = Point(total_time, start_coordinate + displacement)
 
         return LineSegment(start_point, end_point)
 
-    def contains_x_coordinate(self, x_coordinate):
+    def contains_x_coordinate(self, x_coordinate, amount_off_acceptable=1):
         """returns: boolean; if this line contains the x_coordinate"""
 
         x_min, x_max = self.get_x_min_and_max()
-        return is_between_values(x_min, x_max, x_coordinate, 1)
+        return is_between_values(x_min, x_max, x_coordinate, amount_off_acceptable)
 
     def __str__(self):
         return f"{self.start_point} -> {self.end_point}"

@@ -141,11 +141,11 @@ class Path(Component):
             line = self.path_lines[x].__dict__[line_type]
             time = times[x]
 
-            return_value.add_point(time, line.start_point.__dict__[coordinate_type])
+            return_value.add_point(Point(time, line.start_point.__dict__[coordinate_type]))
 
         last_line = self.path_lines[len(self.path_lines) - 1].__dict__[line_type]
         last_time = times[len(times) - 1]
-        return_value.add_point(last_time, last_line.end_point.__dict__[coordinate_type])
+        return_value.add_point(Point(last_time, last_line.end_point.__dict__[coordinate_type]))
 
 class SimplePath:
     """A simple path that doesn't care about length or height of the object"""
@@ -204,6 +204,18 @@ class SimplePath:
 
         return string
 
+    def is_moving_down(self, x_coordinate):
+        """returns: boolean; if the slope is negative at this point"""
+
+        return_value = None
+
+        for line in self.lines:
+            if line.contains_x_coordinate(x_coordinate):
+                return_value = not line.slope_is_positive()
+
+        return return_value
+
+
 class VelocityPath(Path):
     """A path that takes into account velocity"""
 
@@ -216,6 +228,7 @@ class VelocityPath(Path):
     total_time = 0
     last_point = None
     is_unending = False
+    prev_time = 0
 
     def __init__(self, start_point, other_points, velocity):
         """Initializes the object"""
@@ -259,7 +272,10 @@ class VelocityPath(Path):
 
     def get_coordinates(self):
         """returns: [x_coordinate, y_coordinate] for that time"""
-        self.total_time += VelocityCalculator.time
+
+        if self.prev_time != VelocityCalculator.time:
+            self.total_time += VelocityCalculator.time
+            self.prev_time = VelocityCalculator.time
 
         max_time = self.last_end_time
 

@@ -81,6 +81,7 @@ class PongScreen(Screen):
         if new_screen != self.current_screen:
             self.current_screen.un_setup()
             new_screen.setup()
+            game_window.set_screens_visible([self.game_screen, self.pause_screen], False)
             game_window.set_screen_visible(new_screen, True)
             self.current_sub_screen = None
 

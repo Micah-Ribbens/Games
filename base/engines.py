@@ -221,7 +221,7 @@ class CollisionsFinder:
 
         smallest_point = None
         smallest_x_coordinate = float("inf")
-        for point in CollisionsUtilityFunctions.get_path_line_collision_point(line, path):
+        for point in CollisionsUtilityFunctions.get_path_line_collision_points(line, path):
             if point.x_coordinate < smallest_x_coordinate:
                 smallest_point = point
                 smallest_x_coordinate = point.x_coordinate

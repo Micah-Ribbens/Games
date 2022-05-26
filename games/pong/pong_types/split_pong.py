@@ -62,10 +62,6 @@ class SplitPong(PongType):
         self.balls.append(ball)
         ball.color = red
 
-        if type(player2) == AI:
-            # Don't want it to do anything; I want the AI code to be executed in a very specific spot
-            player2.set_action(lambda: [].__contains__(0))
-
     def increase_ball_size(self, ball):
         """ summary: increases the ball's size
 
@@ -80,8 +76,9 @@ class SplitPong(PongType):
         if ball.right_edge == self.player2.x_coordinate:
             ball.x_coordinate -= (self.base_ball_length * .25)
 
-        ball.length += (self.base_ball_length * .25)
-        ball.height += (self.base_ball_length * .25)
+        # TODO change back
+        ball.length += (self.base_ball_length * 1)
+        ball.height += (self.base_ball_length * 1)
 
     def ball_is_ready_to_split(self, ball):
         """ summary: finds out if the ball's size is double the size of its base length
@@ -139,9 +136,8 @@ class SplitPong(PongType):
                 self.increase_ball_size(ball)
                 self.number_of_hits += 1
 
-            if self.ai_should_hit_ball and ball_has_collided:
+            if self.ai_should_hit_ball and ball_has_collided and self.is_single_player:
                 self.ai_should_hit_ball = self.player2.ai_difficulty_level.should_hit_ball(self.number_of_hits)
-                print(self.ai_should_hit_ball)
 
             if self.ball_is_ready_to_split(ball):
                 self.split(ball, new_balls, ball_has_collided_with_paddle1)
@@ -157,20 +153,19 @@ class SplitPong(PongType):
                 or (CollisionsFinder.is_collision(ball, self.player2) and ball.is_moving_right))
 
     def run(self):
-        self.run_ai()
+        """Runs all the code necessary for this pong type to work properly"""
+        if self.is_single_player:
+            self.run_ai()
+            self.player2.ai_difficulty_level = self.ai_difficulty_levels[self.player2.difficulty_level_index]
+
         self.add_needed_objects()
-        self.player2.ai_difficulty_level = self.ai_difficulty_levels[self.player2.difficulty_level_index]
 
         for ball in self.balls:
             self.normal_pong._ball_movement(ball)
 
-
         self.normal_pong.run_player_movement()
 
         self.ball_collisions()
-
-        if self.total_time is not None:
-            self.total_time += VelocityCalculator.time
 
     def add_needed_objects(self):
         """Adds all the objects to the History Keeper that need to be there"""
@@ -196,6 +191,7 @@ class SplitPong(PongType):
         self.ball.height = self.base_ball_length
         self.ball.forwards_velocity = self.ball.base_forwards_velocity
         self.ai_data = {}
+        self.player2.path = None
         self.number_of_hits = 0
 
     def draw_game_objects(self):
@@ -273,6 +269,10 @@ class SplitPong(PongType):
 
     def run_ai(self):
         """Runs the code that makes the ai to work"""
+
+        if self.is_single_player:
+            # Don't want it to do anything; I want the AI code to be executed in a very specific spot
+            self.player2.set_action(lambda: [].__contains__(0))
 
         for ball in self.balls:
             should_add_ball_to_path = ball.is_moving_right and not self.ai_data.__contains__(ball)

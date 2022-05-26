@@ -329,18 +329,18 @@ class CollisionsUtilityFunctions:
 
         return CollisionsUtilityFunctions.get_line_collision_point(line1, line2) is not None
 
-    def get_path_line_collision_point(line: LineSegment, path: Path):
+    def get_path_line_collision_points(line: LineSegment, path: Path):
         """returns: Point; the x and y coordinate at which the line and path collide (None if they don't collide)"""
 
-        collision_point = None
+        return_value = []
 
         for path_line in path.get_lines():
             collision_point = CollisionsUtilityFunctions.get_line_collision_point(path_line, line)
 
             if collision_point is not None:
-                break
+                return_value.append(collision_point)
 
-        return collision_point
+        return return_value
 
     def get_bottommost_object(object1, object2):
         """ summary: finds the object whose y_coordinate is the biggest (top of the screen is 0)

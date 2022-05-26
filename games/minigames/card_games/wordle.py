@@ -276,7 +276,6 @@ class Wordle(WordGame):
             self.current_index += 1
             self.typed_letters = ""
 
-        print(colors)
         self.animation.run_animation(current_components, colors, self.set_component_color)
 
     def set_component_color(self, component, color):

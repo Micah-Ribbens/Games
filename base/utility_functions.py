@@ -330,7 +330,7 @@ def get_min_list_item(items):
         if item < min_item:
             min_item = item
 
-    return min_item
+    return min_item if min_item != float('inf') else 0
 
 
 def is_random_chance(probability: Fraction):
@@ -447,3 +447,21 @@ def get_random_item(items):
     index = randint(0, len(items) - 1)
 
     return items[index]
+
+
+def get_index_of_min_item(items):
+    """returns: int; the index of the minimum item"""
+
+    return items.index(get_min_list_item(items))
+
+
+def get_converted_list(items, variable_name):
+    """returns: Object[]; For each item in items it appends the item's variable (item.__dict__[variable_name])"""
+
+    return_value = []
+
+    for item in items:
+        return_value.append(item.__dict__[variable_name])
+
+    return return_value
+

@@ -128,14 +128,11 @@ class Portal:
         if portal_opening2_collision and is_enabled:
             self.teleport(self.portal_opening1, ball)
 
-
         if portal_opening1_collision and is_enabled:
             self.teleport(self.portal_opening2, ball)
 
         if is_portal_collision:
             self.disable()
-
-
 
     def render(self):
         """ summary: renders the portal
@@ -265,13 +262,9 @@ class PortalPong(PongType):
 
             portal_opening1_collision = CollisionsFinder.is_collision(self.ball, portal.portal_opening1)
             portal_opening2_collision = CollisionsFinder.is_collision(self.ball, portal.portal_opening2)
-            is_portal_collision = portal_opening1_collision or portal_opening2_collision
 
             po1 = portal.portal_opening1
             po2 = portal.portal_opening2
-
-            portal_xy = f"po1 ({po1.x_coordinate}, {po1.y_coordinate})" if portal_opening1_collision else f"po2 ({po2.x_coordinate}, {po2.y_coordinate})"
-            new_ball_xy = f"({po1.x_midpoint}, {po1.y_midpoint})" if portal_opening2_collision else f"({po2.x_midpoint}, {po2.y_midpoint})"
 
             portal.run(self.ball)
 

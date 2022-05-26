@@ -32,14 +32,16 @@ class GameScreen(Screen):
         """
 
         pong_type_class = GameModeSelector.get_pong_type()
+        self.pong_type = pong_type_class(self.player1, self.player2, self.ball)
+        self.pong_type.is_single_player = GameModeSelector.is_single_player()
 
         if GameModeSelector.is_single_player():
             self.player2 = AI(GameModeSelector.ai_difficulty, self.ball)
             self.player2.reset()
             self.player2.set_pong_type(self.pong_type)
+            self.pong_type.player2 = self.player2
             self.components = [self.player1, self.player2, self.ball, self.pause_button]
 
-        self.pong_type = pong_type_class(self.player1, self.player2, self.ball)
         self.ball.reset()
         self.player1_score = 0
         self.player2_score = 0

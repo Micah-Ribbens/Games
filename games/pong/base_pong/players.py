@@ -170,6 +170,8 @@ class AI(Paddle):
         if is_only_ball:
             self.path = VelocityPath(Point(self.x_coordinate, self.y_coordinate), [], self.velocity)
 
+        print(new_y_coordinate, additional_time)
+
         self.add_point_to_player_path(new_y_coordinate, additional_time)
 
     def move_away_from_ball(self, ball_y_coordinate, additional_time, is_only_ball=True):
@@ -270,6 +272,7 @@ class AI(Paddle):
 
         if self.path is not None:
             self.x_coordinate, self.y_coordinate = self.path.get_coordinates()
+            print(self.path.total_time)
 
         if hit_ball_this_cycle:
             self.number_of_hits += 1
@@ -288,14 +291,14 @@ class AI(Paddle):
         self.is_moving = False
         self.path = None
 
-    def render(self):
-        """renders the ai"""
-
-        paddle_image = pygame.transform.scale(pygame.image.load("images/paddle.png"), (int(self.length), int(self.height)))
-        game_window.get_window().blit(paddle_image, (self.x_coordinate, self.y_coordinate))
-
-        if self.path is not None:
-            self.path.render()
+    # def render(self):
+    #     """renders the ai"""
+    #
+    #     paddle_image = pygame.transform.scale(pygame.image.load("images/paddle.png"), (int(self.length), int(self.height)))
+    #     game_window.get_window().blit(paddle_image, (self.x_coordinate, self.y_coordinate))
+    #
+    #     if self.path is not None:
+    #         self.path.render()
 
     def add_path(self, path):
         """Makes the AI follow the specified path until it hits the path's end"""
