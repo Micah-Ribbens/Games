@@ -54,6 +54,7 @@ class TimedEvent:
     is_started = False
     restarts_upon_completion = False
     current_time = 0
+    attributes = ["current_time"]
 
     def __init__(self, time_needed, restarts_upon_completion):
         """ summary: initializes the object by modifying the attributes with the values provided
@@ -122,6 +123,11 @@ class TimedEvent:
         self.is_started = False
         self.current_time = 0
 
+    def has_finished(self):
+        """returns: boolean; if the event has started but has not finished"""
+
+        return not (self.is_started and not self.is_done())
+
 
 class TimedRange:
     """Used for events that do different things at different times"""
@@ -139,6 +145,8 @@ class TimedRange:
         """
 
         current_time = 0
+        self.ranges = []
+
         for time in times:
             self.ranges.append(Range(current_time, current_time + time))
             current_time += time
@@ -156,7 +164,7 @@ class TimedRange:
         """returns: int; the index that the TimedRange is currently at"""
 
         return_value = len(self.ranges) - 1
-        for x in range(self.ranges):
+        for x in range(len(self.ranges)):
             if self.ranges[x].__contains__(self.current_time):
                 return_value = x
 

@@ -6,6 +6,7 @@ from base.engine_utility_classes import CollisionsUtilityFunctions
 from base.engines import CollisionsFinder
 from base.equations import Point, LineSegment
 from base.events import Event
+from base.game_movement import GameMovement
 from base.important_variables import screen_height, screen_length
 from base.path import VelocityPath, Path, SimplePath
 from games.pong.base_pong.players import Player, AI
@@ -111,7 +112,7 @@ class OmnidirectionalPong(NormalPong):
             self.ball_movement()
 
         self.last_ball = self.ball
-        self.horizontal_player_movements(self.player1, pygame.K_a, pygame.K_d)
+        GameMovement.player_horizontal_movement(self.player1, self.player1.velocity, pygame.K_a, pygame.K_d)
         self.player1.movement()
 
         if self.is_single_player:
@@ -120,7 +121,7 @@ class OmnidirectionalPong(NormalPong):
 
         else:
             self.player2.movement()
-            self.horizontal_player_movements(self.player2, pygame.K_LEFT, pygame.K_RIGHT)
+            GameMovement.player_horizontal_movement(self.player2, self.player2.velocity, pygame.K_LEFT, pygame.K_RIGHT)
 
         self.set_is_top_or_bottom_collision()
         self.set_player_horizontal_movements(self.player2)
@@ -214,11 +215,7 @@ class OmnidirectionalPong(NormalPong):
 
         controls = pygame.key.get_pressed()
 
-        if player.can_move_left and controls[left_key]:
-            player.x_coordinate -= VelocityCalculator.calc_distance(player.velocity)
 
-        if player.can_move_right and controls[right_key] and not controls[left_key]:
-            player.x_coordinate += VelocityCalculator.calc_distance(player.velocity)
 
     def set_player_horizontal_movements(self, player):
         """Sets the directions that the player can move"""

@@ -12,8 +12,7 @@ class Ball(Ellipse):
     is_moving_right = False
     is_moving_down = True
     # TODO change me back to 300
-    base_forwards_velocity = VelocityCalculator.give_velocity(
-        screen_length, 350)
+    base_forwards_velocity = VelocityCalculator.give_velocity(screen_length, 350)
     forwards_velocity = base_forwards_velocity
     # Forwards and upwards velocity start out as the same number
     upwards_velocity = base_forwards_velocity
@@ -23,8 +22,7 @@ class Ball(Ellipse):
     can_move = True
     height = VelocityCalculator.give_measurement(screen_height, 5)
     time_since_ground = 0
-    attributes = ["x_coordinate", "y_coordinate",
-                  "length", "height", "forwards_velocity"]
+    attributes = ["x_coordinate", "y_coordinate", "length", "height", "forwards_velocity"]
     length = VelocityCalculator.give_measurement(screen_height, 5)
     active_tip_hits = 0
     name = "ball"

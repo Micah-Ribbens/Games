@@ -75,7 +75,6 @@ class NormalPong(PongType):
         elif is_collision:
             ball.middle_hit(paddle.power / 10)
 
-
     def ball_movement(self):
         """ summary: does the horizontal and vertical movement of the ball by calling _ball_movement()
             params: None

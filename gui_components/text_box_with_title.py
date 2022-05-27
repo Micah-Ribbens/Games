@@ -11,7 +11,7 @@ class TextBoxWithTitle(ClickableComponent):
     title_portion = None
     input_portion = None
 
-    def __init__(self, font_size, default_text, title, text_color, text_background_color):
+    def __init__(self, font_size, default_text, title, text_color, text_background_color, is_editable):
         """ summary: initializes the object
 
             parameters:
@@ -25,7 +25,7 @@ class TextBoxWithTitle(ClickableComponent):
         """
 
         self.title_portion = TextBox(title, font_size, False, text_color, text_background_color)
-        self.input_portion = TextBox(default_text, font_size, True, text_color, text_background_color)
+        self.input_portion = TextBox(default_text, font_size, is_editable, text_color, text_background_color)
         super().__init__()
 
     def number_set_dimensions(self, x_coordinate, y_coordinate, length, height):

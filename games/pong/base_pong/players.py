@@ -2,6 +2,7 @@ from base.colors import *
 from base.drawable_objects import GameObject
 from base.engines import CollisionsFinder
 from base.equations import Point
+from base.game_movement import GameMovement
 from base.important_variables import *
 from base.path import Path, VelocityPath
 from base.utility_classes import Fraction, HistoryKeeper
@@ -57,15 +58,7 @@ class Player(Paddle):
             returns: None
         """
 
-        controls = pygame.key.get_pressed()
-
-        if controls[self.up_key] and self.can_move_up:
-            self.y_coordinate -= VelocityCalculator.calc_distance(
-                self.velocity)
-
-        if controls[self.down_key] and self.can_move_down:
-            self.y_coordinate += VelocityCalculator.calc_distance(
-                self.velocity)
+        GameMovement.player_vertical_movement(self, self.velocity, self.up_key, self.down_key)
 
 
 class AIDifficulty:

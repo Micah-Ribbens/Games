@@ -1,4 +1,5 @@
 from base.equations import Point, LineSegment
+from base.game_movement import GameMovement
 from base.important_variables import screen_height
 from base.path import Path, PathLine
 from base.utility_classes import HistoryKeeper
@@ -77,14 +78,7 @@ class PongType(abc.ABC):
             returns: None
         """
 
-        paddle.can_move_down = False if paddle.bottom >= screen_height else True
-        paddle.can_move_up = False if paddle.y_coordinate <= 0 else True
-
-        if paddle.y_coordinate <= 0:
-            paddle.y_coordinate = 0
-
-        if paddle.bottom >= screen_height:
-            paddle.y_coordinate = screen_height - paddle.height
+        GameMovement.set_player_vertical_movement(paddle, screen_height, 0)
 
     def get_ball_path(self, x_coordinate):
         """ summary: finds the ball's y_coordinate and bottom at the next time it hits the x_coordinate
