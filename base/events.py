@@ -47,6 +47,11 @@ class Event:
 
         return self.current_event and not self.happened_last_cycle()
 
+    def has_stopped(self):
+        """returns: boolean; if the event was True last cycle and is not True this cycle"""
+
+        return self.happened_last_cycle() and not self.current_event
+
 
 class TimedEvent:
     """Used for events that are completed within a certain time frame"""

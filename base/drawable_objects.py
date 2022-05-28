@@ -1,38 +1,13 @@
 from math import sqrt
 
 import pygame
+
+from base.dimensions import Dimensions
 from base.important_variables import game_window
-from base.utility_functions import percentage_to_number
+from base.utility_classes import HistoryKeeper
+from base.utility_functions import *
 
 from gui_components.component import Component
-
-class Segment:
-    """ Stores the necessary information for object to be drawn in segments- the color and values in relation to the base object"""
-
-    color = (0, 0, 0)
-    percent_down = 0
-    percent_right = 0
-    percent_length = 0
-    percent_height = 0
-
-    def __init__(self, **kwargs):
-        """ summary: initializes all the values of the class based upon what is passed in by the key word arguments
-
-            params:
-                color: tuple; the RGB values that make up the color a tuple with three values (Red, Green, Blue)
-                percent_down: int; the amount from the top of the object (either exact number or percentage)
-                percent_right: int; the amount form the left of the object (either exact number or percentage)
-                percent_length: int; the length of the segment (either exact number or percentage of the base object's length)
-                percent_height: int; the height of the segment
-
-            returns: None
-        """
-
-        self.color = kwargs.get("color")
-
-        self.percent_down, self.percent_right = kwargs.get("percent_down"), kwargs.get("percent_right")
-
-        self.percent_length, self.percent_height = kwargs.get("percent_length"), kwargs.get("percent_height")
 
 
 class GameObject(Component):
@@ -62,8 +37,7 @@ class GameObject(Component):
         self.name = id(self)
 
     def run(self):
-        pass
-
+        HistoryKeeper.add(self, self.name, True)
 
     def render(self):
         """ summary: draws the game_object on to the game_window using the variables provided in __init__
@@ -96,17 +70,44 @@ class GameObject(Component):
             returns: None
         """
 
+        GameObject.render(object)
         for segment in segments:
-            x_coordinate = percentage_to_number(
-                segment.percent_right, object.length) + object.x_coordinate
-            y_coordinate = percentage_to_number(
-                segment.percent_down, object.height) + object.y_coordinate
-            height = percentage_to_number(
-                segment.percent_height, object.height)
-            length = percentage_to_number(
-                segment.percent_length, object.length)
-            GameObject.render(GameObject(
-                x_coordinate, y_coordinate, height, length, segment.color))
+            x_coordinate = percentage_to_number(segment.percent_right, object.length) + object.x_coordinate
+            y_coordinate = percentage_to_number(segment.percent_down, object.height) + object.y_coordinate
+            height = percentage_to_number(segment.percent_height, object.height)
+            length = percentage_to_number(segment.percent_length, object.length)
+            GameObject.render(GameObject(x_coordinate, y_coordinate, height, length, segment.color))
+
+
+class Segment(Dimensions):
+    """ Stores the necessary information for object to be drawn in segments- the color and values in relation to the base object"""
+
+    color = (0, 0, 0)
+    percent_down = 0
+    percent_right = 0
+    percent_length = 0
+    percent_height = 0
+
+    def __init__(self, **kwargs):
+        """ summary: initializes all the values of the class based upon what is passed in by the key word arguments
+
+            params:
+                color: tuple; the RGB values that make up the color a tuple with three values (Red, Green, Blue)
+                percent_down: int; the amount from the top of the object (either exact number or percentage)
+                percent_right: int; the amount form the left of the object (either exact number or percentage)
+                percent_length: int; the length of the segment (either exact number or percentage of the base object's length)
+                percent_height: int; the height of the segment
+
+            returns: None
+        """
+
+        self.color = kwargs.get("color")
+
+        self.percent_down, self.percent_right = kwargs.get("percent_down"), kwargs.get("percent_right")
+
+        self.percent_length, self.percent_height = kwargs.get("percent_length"), kwargs.get("percent_height")
+        super().__init__(self.percent_right, self.percent_down, self.percent_length, self.percent_height)
+
 
 class Ellipse(GameObject):
     """A GameObject this is elliptical"""

@@ -1,4 +1,6 @@
+from base.important_variables import screen_height
 from base.utility_functions import get_kwarg_item, solve_quadratic
+from base.velocity_calculator import VelocityCalculator
 
 
 class QuadraticEquation:
@@ -77,7 +79,7 @@ class PhysicsEquation:
 
         self.acceleration = (2 * displacement) / pow(time, 2)
 
-    def set_velocity(self, vertex, time):
+    def set_velocity(self, vertex, time, acceleration=None):
         """ summary: sets the velocity of knowing that d = vit + 1/2at^2 + di
                      IMPORTANT: initial_distance and acceleration must be set prior to this being called
 
@@ -87,7 +89,9 @@ class PhysicsEquation:
 
             returns: None
         """
-        self.initial_velocity = (vertex - self.initial_distance) / time - self.acceleration * time * 1 / 2
+
+        acceleration = acceleration if acceleration is not None else self.acceleration
+        self.initial_velocity = (vertex - self.initial_distance) / time - acceleration * time * 1/2
 
     def set_all_variables(self, vertex, time, acceleration_displacement, initial_distance):
         """ summary: sets all the variables; calls set_velocity and set_acceleration
@@ -184,3 +188,86 @@ class PhysicsEquation:
     def __eq__(self, other):
         return (self.acceleration == other.acceleration and self.initial_velocity == other.initial_velocity and
                 self.initial_distance == other.initial_distance)
+
+
+class PhysicsPath(PhysicsEquation):
+    """An extension of physics equation that allows for automatically changing the player's coordinates"""
+
+    game_object = None
+    current_time = 0
+    is_started = False
+    attribute_modifying = None
+    height_of_path = 0
+    time = 0
+    last_time = 0
+
+    def __init__(self, game_object=None, attribute_modifying="", height_of_path=0, initial_distance=0, time=.5,
+                 acceleration_displacement=screen_height/2):
+
+        """Initializes the object"""
+
+        self.game_object, self.attribute_modifying = game_object, attribute_modifying
+        self.time = time
+        self.height_of_path = height_of_path
+
+        # Adding the initial_distance, so it that is the height of the parabola
+        self.set_all_variables(height_of_path, time, acceleration_displacement, initial_distance)
+
+    def run(self, is_reset_event, is_start_event):
+        """Runs the code for the game_object following the physics path"""
+
+        self.last_time = self.current_time
+
+        # It should not be started again if it has already been started because starting puts the current_time back to 0
+        if is_start_event and not self.is_started:
+            self.start()
+
+        if is_reset_event:
+            self.reset()
+
+        if self.is_started:
+            self.current_time += VelocityCalculator.time
+
+        if self.is_started and self.game_object is not None:
+            self.game_object.__dict__[self.attribute_modifying] += self.get_distance_from_velocity()
+
+    def start(self):
+        """Starts the physics path"""
+
+        self.is_started = True
+        self.current_time = 0
+
+    def reset(self):
+        """Ends and reset the physics path"""
+
+        self.is_started = False
+        self.current_time = 0
+        self.last_time = 0
+
+    def set_initial_distance(self, initial_distance):
+        """Sets the initial distance, so the height of the parabola is equal to the vertex"""
+
+        self.initial_distance = initial_distance
+        self.set_velocity(self.height_of_path + self.initial_distance, self.time)
+
+    def get_distance_from_velocity(self):
+        """returns: double; the distance from velocity (and initial distance)"""
+
+        current_distance = self.initial_velocity * self.current_time + self.initial_distance
+        last_distance = self.initial_velocity * self.last_time + self.initial_distance
+
+        return current_distance - last_distance
+
+    def get_distance_from_acceleration(self):
+        """returns: double; the distance from acceleration"""
+
+        current_distance = 1/2 * self.acceleration * pow(self.current_time, 2)
+        last_distance = 1/2 * self.acceleration * pow(self.last_time, 2)
+        # Have to minus the last time because otherwise it just endlessly compounds
+        return current_distance - last_distance
+
+
+
+
+
+
