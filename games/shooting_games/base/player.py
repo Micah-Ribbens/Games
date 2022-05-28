@@ -78,7 +78,7 @@ class Player(GameObject):
             self.stun_event.run(False, False)
             self.color = white
 
-        # self.invincibility_event.run(False, self.stun_event.current_time >= self.stun_event.time_needed)
+        self.invincibility_event.run(False, self.stun_event.current_time >= self.stun_event.time_needed)
 
         if self.stun_event.has_finished():
             self.run_movement_and_shooting()
@@ -129,7 +129,7 @@ class Player(GameObject):
             bullet_health = self.shooting_timed_range.get_current_index() + 1
             bullet_size = VelocityCalculator.give_measurement(screen_height, 3) * bullet_health
             self.wait_to_shoot_event.reset()
-            ball_x_coordinate = self.turret.right_edge if self.is_facing_right else self.turret.x_coordinate
+            ball_x_coordinate = self.turret.right_edge if self.is_facing_right else self.turret.x_coordinate - bullet_size
 
             bullet = Bullet(bullet_health, self.is_facing_right, ball_x_coordinate,
                             self.turret.y_midpoint, bullet_size, bullet_size)
@@ -142,12 +142,10 @@ class Player(GameObject):
     def stun(self, stun_time):
         """Stuns the player for the amount of time specified"""
 
-        # if self.invincibility_event.is_started:
-        #     print("BREAK")
-        # if self.invincibility_event.has_finished():
-        self.stun_event.time_needed = stun_time
-        self.stun_event.current_time = VelocityCalculator.time
-        self.stun_event.start()
+        if self.invincibility_event.has_finished() and self.stun_event.has_finished():
+            self.stun_event.time_needed = stun_time
+            self.stun_event.current_time = VelocityCalculator.time
+            self.stun_event.start()
 
     def set_color(self, color):
         """Sets the color of this player"""
