@@ -1,6 +1,6 @@
 from base.colors import red, light_gray, white
 from base.drawable_objects import Segment
-from base.events import Event
+from base.events import Event, TimedEvent
 from base.game_movement import GameMovement
 from base.important_variables import (
     screen_height,
@@ -16,17 +16,17 @@ from base.velocity_calculator import VelocityCalculator
 
 
 class Player(GameObject):
-    class States:
-        """The states the player can be in"""
-
-        JUMPING = "Jumping"
-        RUNNING = "Running"
-        DECELERATING = "Decelerating"
+    # class States:
+    #     """The states the player can be in"""
+    #
+    #     JUMPING = "Jumping"
+    #     RUNNING = "Running"
+    #     DECELERATING = "Decelerating"
 
     # Modifiable numbers
     running_velocity = VelocityCalculator.give_velocity(screen_length, 600)
     max_jump_height = VelocityCalculator.give_measurement(screen_height, 40)
-    running_deceleration_time = .2
+    running_deceleration_time = .3
     base_y_coordinate = 0
     base_x_coordinate = 100
 
@@ -36,6 +36,8 @@ class Player(GameObject):
     right_event = None
     left_event = None
     is_runnable = False
+    deceleration_event = None
+    deceleration_path = None
 
     # Booleans
     can_move_down = True
@@ -63,23 +65,33 @@ class Player(GameObject):
         self.jumping_equation = PhysicsPath(self, "y_coordinate", -self.max_jump_height, self.y_coordinate)
         self.jumping_equation.set_initial_distance(self.y_coordinate)
         self.jumping_event, self.right_event, self.left_event = Event(), Event(), Event()
+        self.deceleration_event = TimedEvent(self.running_deceleration_time, False)
+        self.deceleration_path = PhysicsPath(self, "x_coordinate")
 
     def run(self):
         """Runs all the code that is necessary for the player to work properly"""
 
-        # print(f"y coordinate {self.y_coordinate}")
         self.jumping_event.run(key_is_hit(self.jump_key))
         self.right_event.run(key_is_hit(self.right_key))
         self.left_event.run(key_is_hit(self.left_key))
 
-        if self.jumping_event.is_click():
-            print("HALT GAMEPLAY")
-
         self.jumping_equation.run(False, self.jumping_event.is_click())
         GameMovement.set_player_horizontal_movement(self, screen_length, 0)
-        GameMovement.player_horizontal_movement(self, self.running_velocity, self.left_key, self.right_key)
+
+        if self.right_event.has_stopped() or self.left_event.has_stopped():
+            self.decelerate_player(self.right_event.has_stopped())
+            print("DECELERATE")
+
+        if self.deceleration_event.has_finished():
+            GameMovement.player_horizontal_movement(self, self.running_velocity, self.left_key, self.right_key)
+            self.deceleration_path.reset()
+            self.deceleration_event.reset()
+
+        else:
+            self.deceleration_event.run(False, False)
+            self.deceleration_path.run(False, False, True)
+
         super().run()
-        # print(f"end y coordinate {self.y_coordinate}")
 
     def render(self):
         """Renders the object onto the screen"""
@@ -131,3 +143,18 @@ class Player(GameObject):
 
         self.jumping_equation.set_initial_distance(y_coordinate)
         self.y_coordinate = y_coordinate
+
+    def decelerate_player(self, is_moving_right):
+        """Makes the player decelerate"""
+
+        self.deceleration_path.initial_distance = self.x_coordinate
+        self.deceleration_path.initial_velocity = self.running_velocity if is_moving_right else -self.running_velocity
+
+        # Gotten using math; Makes the player stop in the amount of time 'self.running_deceleration_time'
+        self.deceleration_path.acceleration = (-self.deceleration_path.initial_velocity)/self.running_deceleration_time
+
+        self.deceleration_event.start()
+        self.deceleration_event.time_needed = self.running_deceleration_time
+        self.deceleration_path.start()
+
+

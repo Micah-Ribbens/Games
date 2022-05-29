@@ -213,7 +213,7 @@ class PhysicsPath(PhysicsEquation):
         # Adding the initial_distance, so it that is the height of the parabola
         self.set_all_variables(height_of_path, time, acceleration_displacement, initial_distance)
 
-    def run(self, is_reset_event, is_start_event):
+    def run(self, is_reset_event, is_start_event, is_using_everything=False):
         """Runs the code for the game_object following the physics path"""
 
         self.last_time = self.current_time
@@ -228,8 +228,15 @@ class PhysicsPath(PhysicsEquation):
         if self.is_started:
             self.current_time += VelocityCalculator.time
 
-        if self.is_started and self.game_object is not None:
+        should_change_player_coordinates = self.is_started and self.game_object is not None
+
+        # Decides if it is just using the velocity or both velocity and acceleration
+        if should_change_player_coordinates and not is_using_everything:
             self.game_object.__dict__[self.attribute_modifying] += self.get_distance_from_velocity()
+
+        elif should_change_player_coordinates:
+            self.game_object.__dict__[self.attribute_modifying] = self.get_distance(self.current_time)
+
 
     def start(self):
         """Starts the physics path"""
