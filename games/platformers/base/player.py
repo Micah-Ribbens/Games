@@ -1,3 +1,5 @@
+from math import sqrt
+
 from base.colors import red, light_gray, white
 from base.drawable_objects import Segment
 from base.events import Event, TimedEvent
@@ -24,11 +26,12 @@ class Player(GameObject):
     #     DECELERATING = "Decelerating"
 
     # Modifiable numbers
-    running_velocity = VelocityCalculator.give_velocity(screen_length, 600)
     max_jump_height = VelocityCalculator.give_measurement(screen_height, 40)
-    running_deceleration_time = .3
+    running_deceleration_time = .2
     base_y_coordinate = 0
     base_x_coordinate = 100
+    max_velocity = VelocityCalculator.give_velocity(screen_length, 1200)
+    time_to_get_to_max_velocity = 1
 
     # Miscellaneous
     jumping_equation = None
@@ -38,6 +41,8 @@ class Player(GameObject):
     is_runnable = False
     deceleration_event = None
     deceleration_path = None
+    acceleration_path = None
+    current_velocity = 0
 
     # Booleans
     can_move_down = True
@@ -67,6 +72,8 @@ class Player(GameObject):
         self.jumping_event, self.right_event, self.left_event = Event(), Event(), Event()
         self.deceleration_event = TimedEvent(self.running_deceleration_time, False)
         self.deceleration_path = PhysicsPath(self, "x_coordinate")
+        self.acceleration_path = PhysicsPath()
+        self.acceleration_path.set_acceleration(self.time_to_get_to_max_velocity, self.max_velocity)
 
     def run(self):
         """Runs all the code that is necessary for the player to work properly"""
@@ -80,10 +87,11 @@ class Player(GameObject):
 
         if self.right_event.has_stopped() or self.left_event.has_stopped():
             self.decelerate_player(self.right_event.has_stopped())
-            print("DECELERATE")
+            self.acceleration_path.reset()
 
-        if self.deceleration_event.has_finished():
-            GameMovement.player_horizontal_movement(self, self.running_velocity, self.left_key, self.right_key)
+        if self.deceleration_event.has_finished() or self.player_movement_direction_is_same_as_deceleration():
+            self.set_current_velocity()
+            GameMovement.player_horizontal_movement(self, self.current_velocity, self.left_key, self.right_key)
             self.deceleration_path.reset()
             self.deceleration_event.reset()
 
@@ -148,13 +156,46 @@ class Player(GameObject):
         """Makes the player decelerate"""
 
         self.deceleration_path.initial_distance = self.x_coordinate
-        self.deceleration_path.initial_velocity = self.running_velocity if is_moving_right else -self.running_velocity
+        self.deceleration_path.initial_velocity = self.current_velocity if is_moving_right else -self.current_velocity
+
+        # If the player is not at maximum velocity it shouldn't take as long to decelerate
+        time_needed = self.running_deceleration_time / (self.max_velocity /  self.current_velocity)
 
         # Gotten using math; Makes the player stop in the amount of time 'self.running_deceleration_time'
-        self.deceleration_path.acceleration = (-self.deceleration_path.initial_velocity)/self.running_deceleration_time
+        self.deceleration_path.acceleration = (-self.deceleration_path.initial_velocity)/time_needed
 
         self.deceleration_event.start()
-        self.deceleration_event.time_needed = self.running_deceleration_time
+        self.deceleration_event.time_needed = time_needed
         self.deceleration_path.start()
+
+    def player_movement_direction_is_same_as_deceleration(self):
+        """returns: boolean; if the direction the player is moving is equal to the deceleration"""
+
+        deceleration_direction_is_rightwards = self.deceleration_path.acceleration < 0
+        return ((deceleration_direction_is_rightwards and key_is_hit(self.right_key)) or
+                not deceleration_direction_is_rightwards and key_is_hit(self.left_key))
+
+    def set_current_velocity(self):
+        """returns: double; the current velocity of the player"""
+
+        deceleration_has_not_finished = self.deceleration_path.current_time > 0
+        self.acceleration_path.run(False, key_is_hit(self.left_key) or key_is_hit(self.right_key), True)
+
+        if deceleration_has_not_finished:
+            current_velocity = self.deceleration_path.get_velocity_using_time(self.deceleration_path.current_time)
+            # Figuring out the time to get to that velocity, so the player can continue to accelerate to the max velocity
+            self.acceleration_path.current_time = sqrt(abs(current_velocity) / self.acceleration_path.acceleration)
+
+        self.current_velocity = self.acceleration_path.get_acceleration_displacement()
+        print(self.current_velocity, self.acceleration_path.current_time)
+
+        if self.acceleration_path.current_time > self.time_to_get_to_max_velocity:
+            self.current_velocity = self.max_velocity
+
+
+
+
+
+
 
 

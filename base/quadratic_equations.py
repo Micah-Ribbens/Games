@@ -67,7 +67,7 @@ class PhysicsEquation:
 
         return -self.initial_velocity / self.acceleration
 
-    def set_acceleration(self, time, displacement):
+    def set_gravity_acceleration(self, time, displacement):
         """ summary: sets the acceleration knowing that d = 1/2 * a * t^2 where d is displacement, a is acceleration, and t is time
 
             params:
@@ -78,6 +78,11 @@ class PhysicsEquation:
         """
 
         self.acceleration = (2 * displacement) / pow(time, 2)
+
+    def set_acceleration(self, time, displacement):
+        """Like 'set_gravity_acceleration) except it is using a normal physics equation where the distance from acceleration is not halved"""
+
+        self.acceleration = displacement / pow(time, 2)
 
     def set_velocity(self, vertex, time, acceleration=None):
         """ summary: sets the velocity of knowing that d = vit + 1/2at^2 + di
@@ -94,7 +99,7 @@ class PhysicsEquation:
         self.initial_velocity = (vertex - self.initial_distance) / time - acceleration * time * 1/2
 
     def set_all_variables(self, vertex, time, acceleration_displacement, initial_distance):
-        """ summary: sets all the variables; calls set_velocity and set_acceleration
+        """ summary: sets all the variables; calls set_velocity and set_gravity_acceleration
 
             params:
                 vertex: double; the highest/lowest point of the parabola
@@ -106,7 +111,7 @@ class PhysicsEquation:
         """
 
         self.initial_distance = initial_distance
-        self.set_acceleration(time, acceleration_displacement)
+        self.set_gravity_acceleration(time, acceleration_displacement)
         self.set_velocity(vertex, time)
 
     def set_variables(self, **kwargs):
@@ -181,7 +186,7 @@ class PhysicsEquation:
         """returns: double; the amount of time it takes the parabola to go from start_location -> start_location"""
 
         return self.get_time_to_vertex() * 2
-
+    
     def __str__(self):
         return f"[{self.acceleration},{self.initial_velocity},{self.initial_distance},]"
 
@@ -265,15 +270,19 @@ class PhysicsPath(PhysicsEquation):
 
         return current_distance - last_distance
 
-    def get_distance_from_acceleration(self):
-        """returns: double; the distance from acceleration"""
+    def get_gravity_distance_from_acceleration(self):
+        """returns: double; the distance from acceleration with gravity"""
 
         current_distance = 1/2 * self.acceleration * pow(self.current_time, 2)
         last_distance = 1/2 * self.acceleration * pow(self.last_time, 2)
         # Have to minus the last time because otherwise it just endlessly compounds
         return current_distance - last_distance
-
-
+    
+    def get_acceleration_displacement(self):
+        """returns: double; the displacement from acceleration normally (not with gravity)"""
+        
+        return self.acceleration *  pow(self.current_time, 2)
+    
 
 
 

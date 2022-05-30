@@ -14,7 +14,7 @@ class GravityEngine:
 
         for x in range(len(self.game_objects)):
             physics_path = PhysicsPath()
-            physics_path.set_acceleration(time, acceleration_displacement)
+            physics_path.set_gravity_acceleration(time, acceleration_displacement)
             self.physics_paths.append(physics_path)
 
     def run(self):
@@ -28,7 +28,7 @@ class GravityEngine:
             #     print("STOP")
             physics_path.run(game_object.is_on_platform, not game_object.is_on_platform)
 
-            game_object.y_coordinate += physics_path.get_distance_from_acceleration()
+            game_object.y_coordinate += physics_path.get_gravity_distance_from_acceleration()
 
     def reset(self):
         """Resets everything back to the start of the game"""

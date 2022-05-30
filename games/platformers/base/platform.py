@@ -15,8 +15,8 @@ class Platform(GameObject):
         """Initializes the object"""
 
         height = 100
-        length = VelocityCalculator.give_measurement(screen_length, 50)
-        super().__init__(100, screen_height, height, length, (150, 75, 0))
+        length = VelocityCalculator.give_measurement(screen_length, 100)
+        super().__init__(0, screen_height, height, length, (150, 75, 0))
 
     def render(self):
         """Renders the object onto the screen"""
