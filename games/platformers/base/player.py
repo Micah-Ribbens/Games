@@ -27,11 +27,11 @@ class Player(GameObject):
 
     # Modifiable numbers
     max_jump_height = VelocityCalculator.give_measurement(screen_height, 40)
-    running_deceleration_time = .2
+    running_deceleration_time = .4
     base_y_coordinate = 0
     base_x_coordinate = 100
-    max_velocity = VelocityCalculator.give_velocity(screen_length, 1200)
-    time_to_get_to_max_velocity = 1
+    max_velocity = VelocityCalculator.give_velocity(screen_length, 800)
+    time_to_get_to_max_velocity = .3
 
     # Miscellaneous
     jumping_equation = None
@@ -48,7 +48,7 @@ class Player(GameObject):
     can_move_down = True
     can_move_left = True
     can_move_right = True
-    is_on_platform = False
+    is_on_platform = True
 
     # Keys
     left_key = None
@@ -83,7 +83,6 @@ class Player(GameObject):
         self.left_event.run(key_is_hit(self.left_key))
 
         self.jumping_equation.run(False, self.jumping_event.is_click())
-        GameMovement.set_player_horizontal_movement(self, screen_length, 0)
 
         if self.right_event.has_stopped() or self.left_event.has_stopped():
             self.decelerate_player(self.right_event.has_stopped())
@@ -95,9 +94,14 @@ class Player(GameObject):
             self.deceleration_path.reset()
             self.deceleration_event.reset()
 
-        else:
+        elif self.can_decelerate():
             self.deceleration_event.run(False, False)
             self.deceleration_path.run(False, False, True)
+
+        else:
+            self.deceleration_path.reset()
+            self.acceleration_path.reset()
+            self.deceleration_event.reset()
 
         super().run()
 
@@ -144,6 +148,7 @@ class Player(GameObject):
 
         self.x_coordinate = self.base_x_coordinate
         self.y_coordinate = self.base_y_coordinate
+        self.is_on_platform = True
         self.jumping_equation.reset()
 
     def set_y_coordinate(self, y_coordinate):
@@ -187,10 +192,15 @@ class Player(GameObject):
             self.acceleration_path.current_time = sqrt(abs(current_velocity) / self.acceleration_path.acceleration)
 
         self.current_velocity = self.acceleration_path.get_acceleration_displacement()
-        print(self.current_velocity, self.acceleration_path.current_time)
 
         if self.acceleration_path.current_time > self.time_to_get_to_max_velocity:
             self.current_velocity = self.max_velocity
+
+    def can_decelerate(self):
+        """returns: boolean; if the player can decelerate (they couldn't if an object was in the way"""
+
+        deceleration_direction_is_rightwards = self.deceleration_path.acceleration < 0
+        return self.can_move_right if deceleration_direction_is_rightwards else self.can_move_left
 
 
 

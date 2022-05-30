@@ -82,7 +82,7 @@ class PhysicsEquation:
     def set_acceleration(self, time, displacement):
         """Like 'set_gravity_acceleration) except it is using a normal physics equation where the distance from acceleration is not halved"""
 
-        self.acceleration = displacement / pow(time, 2)
+        self.acceleration = displacement / time
 
     def set_velocity(self, vertex, time, acceleration=None):
         """ summary: sets the velocity of knowing that d = vit + 1/2at^2 + di
@@ -281,7 +281,7 @@ class PhysicsPath(PhysicsEquation):
     def get_acceleration_displacement(self):
         """returns: double; the displacement from acceleration normally (not with gravity)"""
         
-        return self.acceleration *  pow(self.current_time, 2)
+        return self.acceleration * self.current_time
     
 
 

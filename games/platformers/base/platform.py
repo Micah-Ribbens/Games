@@ -11,12 +11,16 @@ class Platform(GameObject):
 
     color = (150, 75, 0)
 
-    def __init__(self):
+    def __init__(self, x_coordinate=0, y_coordinate=0, length=0, height=0, has_supplied_values=False):
         """Initializes the object"""
 
-        height = 100
-        length = VelocityCalculator.give_measurement(screen_length, 100)
-        super().__init__(0, screen_height, height, length, (150, 75, 0))
+        if not has_supplied_values:
+            height = screen_height
+            length = VelocityCalculator.give_measurement(screen_length, 30)
+            super().__init__(100, 100, height, length, (150, 75, 0))
+
+        else:
+            super().__init__(x_coordinate, y_coordinate, height, length, (150, 75, 0))
 
     def render(self):
         """Renders the object onto the screen"""

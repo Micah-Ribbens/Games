@@ -78,6 +78,21 @@ class GameObject(Component):
             length = percentage_to_number(segment.percent_length, object.length)
             GameObject.render(GameObject(x_coordinate, y_coordinate, height, length, segment.color))
 
+    def set_x_coordinate(self, x_coordinate):
+
+        # if self.x_coordinate != x_coordinate:
+        #     raise ValueError("BAAAAAD")
+        self.x_coordinate = x_coordinate
+
+    def set_y_coordinate(self, y_coordinate):
+        self.y_coordinate = y_coordinate
+
+    def set_length(self, length):
+        self.length = length
+
+    def set_height(self, height):
+        self.height = height
+
 
 class Segment(Dimensions):
     """ Stores the necessary information for object to be drawn in segments- the color and values in relation to the base object"""

@@ -18,13 +18,13 @@ class CollisionData:
     """Stores all the data for collisions"""
     is_collision = False
     is_moving_collision = False
-    is_right_collision = False
-    is_left_collision = False
+    is_moving_right_collision = False
+    is_moving_left_collision = False
     object_xy = None
 
-    def __init__(self, is_collision, is_moving_collision, is_right_collision, is_left_collision, object_xy):
+    def __init__(self, is_collision, is_moving_collision, is_moving_right_collision, is_moving_left_collision, object_xy):
         self.is_collision, self.is_moving_collision = is_collision, is_moving_collision
-        self.is_right_collision, self.is_left_collision = is_right_collision, is_left_collision
+        self.is_moving_right_collision, self.is_moving_left_collision = is_moving_right_collision, is_moving_left_collision
         self.object_xy = object_xy
 
 
@@ -45,7 +45,7 @@ class CollisionsUtilityFunctions:
 
             returns: boolean; if object1 hit/ got hit by object2 from the right
         """
-        is_right_collision = False
+        is_moving_right_collision = False
 
         object1_x_distance_traveled = abs(object1_x_displacement)
         object2_x_distance_traveled = abs(object2_x_displacement)
@@ -53,13 +53,13 @@ class CollisionsUtilityFunctions:
         if object2_x_distance_traveled >= object1_x_distance_traveled:
             # Since object2 traveled a greater distance its displacement matters more (if it goes leftwards into the ball
             # it would be a left collision and if it goes rightwards it would be a right collision)
-            is_right_collision = object2_x_displacement > 0
+            is_moving_right_collision = object2_x_displacement > 0
 
         else:
             # Otherwise, since object1 has traveled the greater distance the direction it goes matters most
-            is_right_collision = object1_x_displacement < 0
+            is_moving_right_collision = object1_x_displacement < 0
 
-        return is_right_collision
+        return is_moving_right_collision
 
     def get_collision_data(object1, object2, collision_time, is_moving_collision):
         """returns: List of CollisionData; [object1 Collision Data, object2 Collision Data]"""
@@ -71,10 +71,10 @@ class CollisionsUtilityFunctions:
         object1_displacement = object1.x_coordinate - prev_object1.x_coordinate
         object2_displacement = object2.x_coordinate - prev_object2.x_coordinate
         object_xy = CollisionsUtilityFunctions.get_object_xy(object1, prev_object1, collision_time)
-        is_right_collision = CollisionsUtilityFunctions.get_is_right_collision(object1_displacement, object2_displacement)
-        is_left_collision = not is_right_collision
+        is_moving_right_collision = CollisionsUtilityFunctions.get_is_right_collision(object1_displacement, object2_displacement)
+        is_moving_left_collision = not is_moving_right_collision
 
-        return CollisionData(is_collision, is_moving_collision, is_right_collision, is_left_collision, object_xy)
+        return CollisionData(is_collision, is_moving_collision, is_moving_right_collision, is_moving_left_collision, object_xy)
 
     def get_path_collision_time(object1_path, object2_path):
         """ summary: finds the time that object1 and object2 collide using their paths

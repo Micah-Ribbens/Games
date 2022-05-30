@@ -62,6 +62,17 @@ class HistoryKeeper:
 
         return HistoryKeeper.last_objects.get(f"{name}{HistoryKeeper.last_time}")
 
+    def is_populated(all_objects):
+        """returns: boolean; if the History Keeper has these objects in it NOTE: each object in object must have the attribute name"""
+
+        return_value = True
+
+        for object in all_objects:
+            if HistoryKeeper.get_last(object.name) is None:
+                return_value = False
+
+        return return_value
+
 class Fraction:
     """Has a numerator and a denominator along with utility functions that go along with fractions"""
     numerator = None
