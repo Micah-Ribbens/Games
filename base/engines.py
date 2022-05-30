@@ -21,7 +21,6 @@ class CollisionsFinder:
         CollisionsFinder.update_data(object1, object2)
         return CollisionsFinder.objects_to_data.get(f"{id(object1)} {id(object2)}").is_moving_collision
 
-    # TODO Pick up here
     # VERY IMPORTANT NOTE: is moving left and right collisions count it if the object was not outside of the other last cycle
     # Meaning that if the object were to come down onto the end of the other object it would count; whereas left and right
     # Collisions it has to be on the outside last cycle in order for it to count
@@ -67,8 +66,6 @@ class CollisionsFinder:
         collision_data: CollisionData = CollisionsFinder.get_collision_data(object1, object2)
         return collision_data.is_moving_collision and collision_data.is_moving_left_collision
 
-
-
     def get_collision_data(object1, object2) -> CollisionData:
         """returns: CollisionData; the data for the collision for 'object1' and 'object2'"""
         return CollisionsFinder.objects_to_data.get(f"{id(object1)} {id(object2)}")
@@ -78,7 +75,6 @@ class CollisionsFinder:
         CollisionsFinder.update_data(object1, object2)
         return [CollisionsFinder.get_collision_data(object1, object2).object_xy,
                 CollisionsFinder.get_collision_data(object2, object1).object_xy]
-
 
     def make_dimensions_match(prev_object, current_object):
         """Makes the height and length of the objects match; changes prev_object to match current_object"""
@@ -233,7 +229,7 @@ class CollisionsFinder:
 
         # Meaning that it isn't the bottom object anymore
         return (CollisionsFinder.is_collision(object1, object2) and prev_object1.y_coordinate > prev_object2.bottom and
-                object1.y_coordinate <= object2.bottom) or objects_are_touching
+                object1.y_coordinate < object2.bottom) or objects_are_touching
 
     def is_top_collision(object1, object2):
         """ summary: finds out if the object's collided from the bottom

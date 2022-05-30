@@ -43,6 +43,8 @@ class Player(GameObject):
     deceleration_path = None
     acceleration_path = None
     current_velocity = 0
+    normal_upwards_velocity = 0
+    paths_and_events = None
 
     # Booleans
     can_move_down = True
@@ -74,6 +76,9 @@ class Player(GameObject):
         self.deceleration_path = PhysicsPath(self, "x_coordinate")
         self.acceleration_path = PhysicsPath()
         self.acceleration_path.set_acceleration(self.time_to_get_to_max_velocity, self.max_velocity)
+        self.normal_upwards_velocity = self.jumping_equation.initial_velocity
+
+        self.paths_and_events = [self.jumping_equation, self.deceleration_path, self.deceleration_event, self.acceleration_path]
 
     def run(self):
         """Runs all the code that is necessary for the player to work properly"""
@@ -102,8 +107,6 @@ class Player(GameObject):
             self.deceleration_path.reset()
             self.acceleration_path.reset()
             self.deceleration_event.reset()
-
-        super().run()
 
     def render(self):
         """Renders the object onto the screen"""
@@ -140,6 +143,7 @@ class Player(GameObject):
         if self.is_on_platform != is_on_platform and is_on_platform:
             self.jumping_equation.reset()
             self.jumping_equation.set_initial_distance(self.y_coordinate)
+            self.jumping_equation.initial_velocity = self.normal_upwards_velocity
 
         self.is_on_platform = is_on_platform
 
@@ -149,7 +153,10 @@ class Player(GameObject):
         self.x_coordinate = self.base_x_coordinate
         self.y_coordinate = self.base_y_coordinate
         self.is_on_platform = True
-        self.jumping_equation.reset()
+        self.jumping_equation.initial_velocity = self.normal_upwards_velocity
+
+        for path_or_event in self.paths_and_events:
+            path_or_event.reset()
 
     def set_y_coordinate(self, y_coordinate):
         """Sets the y coordinate of the player"""
@@ -201,6 +208,16 @@ class Player(GameObject):
 
         deceleration_direction_is_rightwards = self.deceleration_path.acceleration < 0
         return self.can_move_right if deceleration_direction_is_rightwards else self.can_move_left
+
+    def run_bottom_collision(self, y_coordinate):
+        """Runs what should happen after a bottom collision (the player should rebound off of it)"""
+
+        velocity = self.jumping_equation.get_velocity_using_displacement(self.jumping_equation.initial_distance + y_coordinate)
+        self.jumping_equation.set_variables(initial_velocity=velocity)
+        self.jumping_equation.reset()
+        self.y_coordinate = y_coordinate
+
+
 
 
 

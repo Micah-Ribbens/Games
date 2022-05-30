@@ -36,9 +36,6 @@ class GameObject(Component):
         self.color = color
         self.name = id(self)
 
-    def run(self):
-        HistoryKeeper.add(self, self.name, True)
-
     def render(self):
         """ summary: draws the game_object on to the game_window using the variables provided in __init__
             (x_coordinate, y_coordinate, length, height, and color)
@@ -49,6 +46,9 @@ class GameObject(Component):
 
         pygame.draw.rect(game_window.get_window(), self.color, (self.x_coordinate,
                          self.y_coordinate, self.length, self.height))
+
+    def run(self):
+        pass
 
     # Purely for debugging purposes; so you can see the location and size of game objects
     def __str__(self):
