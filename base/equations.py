@@ -1,7 +1,7 @@
-from base.quadratic_equations import *
 from base.important_variables import *
 from base.colors import *
 from base.utility_functions import min_value, max_value, is_within_range, is_between_values
+from gui_components.component import Component
 
 
 class Point:
@@ -26,7 +26,7 @@ class Point:
         return f"({self.x_coordinate}, {self.y_coordinate})"
 
 
-class LineSegment:
+class LineSegment(Component):
     """Uses the equation y = mx + b where m is slope and b is y_intercept"""
 
     slope = 0
@@ -69,7 +69,7 @@ class LineSegment:
         """Renders the object"""
 
         line_height = 3
-        pygame.draw_py.draw_line(game_window.get_window(), self.color,
+        pygame.draw.line(game_window.get_window(), self.color,
                                  (int(self.start_point.x_coordinate), int(self.start_point.y_coordinate) - line_height),
                                  (int(self.end_point.x_coordinate), int(self.end_point.y_coordinate) - line_height), line_height)
 
@@ -179,3 +179,6 @@ class LineSegment:
 
     def __str__(self):
         return f"{self.start_point} -> {self.end_point}"
+
+    def run(self):
+        pass

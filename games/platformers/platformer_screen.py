@@ -8,6 +8,7 @@ from games.platformers.base.gravity_engine import GravityEngine
 from games.platformers.base.platform import Platform
 from games.platformers.base.player import Player
 from gui_components.screen import Screen
+from games.platformers.base.platformer_variables import *
 
 
 class PlatformerScreen(Screen):
@@ -20,9 +21,16 @@ class PlatformerScreen(Screen):
     def __init__(self):
         """Initializes the object"""
 
-        self.platforms = [Platform(), Platform(100, 250, 3000, 100, True)]
+        # Platform above you
+        # self.platforms = [Platform(), Platform(Platform().x_coordinate, Platform().y_coordinate - self.player.max_jump_height * 1/2 - 200 - self.player.height, screen_length, 200, True)]
 
-        self.gravity_engine = GravityEngine([self.player], .5, screen_height/2)
+        # Two normal platforms
+        # self.platforms = [Platform(), Platform(Platform().right_edge + 200, Platform().y_coordinate - self.player.max_jump_height, 200, 200, True)]
+
+        # One Long Platform
+        self.platforms = [Platform(0, 300, screen_length, 100, True)]
+
+        self.gravity_engine = GravityEngine([self.player], self.player.jumping_equation.acceleration)
         self.player.jumping_equation.acceleration = self.gravity_engine.game_object_to_physics_path[self.player].acceleration
         self.player.y_coordinate = self.platforms[0].y_coordinate - self.player.height
         self.player.base_y_coordinate = self.player.y_coordinate
@@ -35,20 +43,33 @@ class PlatformerScreen(Screen):
 
         self.player.run()
         self.gravity_engine.run()
-        self.run_platform_collisions()
+        self.run_all_collisions()
 
         if self.player.y_coordinate >= screen_height:
             self.reset_game()
 
         self.add_game_objects()
+        self.components = [self.player] + self.platforms + self.player.current_weapon.get_sub_components()
 
     def reset_game(self):
         """Resets the game after the player's death"""
 
-        print("RESET GAME")
         self.player.reset()
         self.gravity_engine.reset()
         HistoryKeeper.last_objects = {}
+
+    def run_all_collisions(self):
+        """Runs all the collisions between the player, projectiles, and enemies"""
+
+        self.run_platform_collisions()
+        weapon = self.player.current_weapon
+
+        for platform in self.platforms:
+            for x in range(len(weapon.get_sub_components())):
+                sub_component = weapon.get_sub_components()[x]
+                if CollisionsFinder.is_collision(platform, sub_component):
+                    weapon.run_inanimate_object_collision(platform, x)
+
 
     def run_platform_collisions(self):
         """Runs all the collisions between the player and the platforms"""
@@ -136,6 +157,14 @@ class PlatformerScreen(Screen):
 
         self.player.set_is_on_platform(player_is_on_platform)
 
+        # Moving the player ever so slightly, so that the right and left collisions don't trigger when the player is on
+        # The very edge of the platform
+        if player_is_on_platform and top_collision_data[1].right_edge == self.player.x_coordinate:
+            self.player.x_coordinate -= pow(10, -9)
+
+        if player_is_on_platform and top_collision_data[1].x_coordinate == self.player.right_edge:
+            self.player.x_coordinate += pow(10, -9)
+
         if bottom_collision_data[0]:
             self.gravity_engine.game_object_to_physics_path[self.player].reset()
             self.player.run_bottom_collision(bottom_collision_data[1].bottom)
@@ -147,6 +176,10 @@ class PlatformerScreen(Screen):
             HistoryKeeper.add(platform, platform.name, True)
 
         HistoryKeeper.add(self.player, self.player.name, True)
+
+        for weapon in self.player.current_weapon.get_sub_components():
+            weapon.name = id(weapon)
+            HistoryKeeper.add(weapon, weapon.name, True)
 
 
 

@@ -15,9 +15,9 @@ class Platform(GameObject):
         """Initializes the object"""
 
         if not has_supplied_values:
-            height = screen_height
+            height = 150
             length = VelocityCalculator.give_measurement(screen_length, 30)
-            super().__init__(100, screen_height - 10, height, length, (150, 75, 0))
+            super().__init__(100, 500, height, length, (150, 75, 0))
 
         else:
             super().__init__(x_coordinate, y_coordinate, height, length, (150, 75, 0))

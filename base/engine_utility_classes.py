@@ -198,10 +198,13 @@ class CollisionsUtilityFunctions:
         collision_time = float('inf')
         for line in moving_object_path.get_lines():
             time = None
-            if type(stationary_object) == Ellipse:
+            if isinstance(stationary_object, Ellipse):
                 time = CollisionsUtilityFunctions.get_line_ellipse_collision_time(line, stationary_object, moving_object_path)
 
-            # Assumes that if it isn't an ellipse it must be a rectangle
+            elif isinstance(stationary_object, LineSegment):
+                time = CollisionsUtilityFunctions.get_line_collision_time(stationary_object, line, moving_object_path)
+
+            # Assumes that if it isn't any of the above things it must be a rectangle
             else:
                 time = CollisionsUtilityFunctions.get_line_rectangle_collision_time(stationary_object, line, moving_object_path)
 
@@ -222,15 +225,23 @@ class CollisionsUtilityFunctions:
 
         collision_time = float('inf')
         for rectangle_line in rectangle_lines:
-            collision_point = CollisionsUtilityFunctions.get_line_collision_point(rectangle_line, line)
-
-            # TODO times not lining up RIP
-            if collision_point is not None:
-                distance_to_point = get_distance(line.start_point, collision_point)
-                time = CollisionsUtilityFunctions.get_time_to_point(distance_to_point, moving_object_path.get_total_distance())
-                collision_time = time if time < collision_time else collision_time
+            time = CollisionsUtilityFunctions.get_line_collision_time(rectangle_line, line, moving_object_path)
+            collision_time = time if time < collision_time and time != -1 else collision_time
 
         return collision_time if collision_time != float('inf') else -1
+
+    def get_line_collision_time(static_line, moving_object_line, moving_object_path):
+        """returns: double; the time of that the two lines collide"""
+
+        return_value = -1
+        collision_point = CollisionsUtilityFunctions.get_line_collision_point(static_line, moving_object_line)
+
+        if collision_point is not None:
+            distance_to_point = get_distance(moving_object_line.start_point, collision_point)
+            time = CollisionsUtilityFunctions.get_time_to_point(distance_to_point, moving_object_path.get_total_distance())
+            return_value = time
+
+        return return_value
 
     def get_smallest_time(line: LineSegment, moving_object_path: ObjectPath, points):
         """returns: double; the smallest amount of time it would take for the line to go from it starts to a point"""

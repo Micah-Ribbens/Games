@@ -2,6 +2,7 @@ from copy import deepcopy
 
 from base.drawable_objects import GameObject, Ellipse
 from base.engine_utility_classes import CollisionsUtilityFunctions, CollisionData
+from base.equations import LineSegment
 from base.path import Path, ObjectPath
 from base.utility_classes import HistoryKeeper
 from base.utility_functions import rounded
@@ -24,7 +25,7 @@ class CollisionsFinder:
     # VERY IMPORTANT NOTE: is moving left and right collisions count it if the object was not outside of the other last cycle
     # Meaning that if the object were to come down onto the end of the other object it would count; whereas left and right
     # Collisions it has to be on the outside last cycle in order for it to count
-    def is_left_collision(object1, object2):
+    def is_left_collision(object1, object2, is_collision=None):
         """returns: boolean; if object1 has collided with object2's left edge (movement does not matter)"""
 
         prev_object1 = HistoryKeeper.get_last(object1.name)
@@ -33,13 +34,15 @@ class CollisionsFinder:
         if prev_object1 is None or prev_object2 is None:
             return False
 
+        is_collision = is_collision if is_collision is not None else CollisionsFinder.is_collision(object1, object2)
+
         object1_has_moved_into_object2 = prev_object1.right_edge < prev_object2.x_coordinate and object1.right_edge > object2.x_coordinate
-        is_moving_left_collision = CollisionsFinder.is_collision(object1, object2) and object1_has_moved_into_object2
+        is_moving_left_collision = is_collision and object1_has_moved_into_object2
 
         objects_are_touching = object1.right_edge == object2.x_coordinate and CollisionsFinder.is_height_collision(object1, object2)
         return is_moving_left_collision or objects_are_touching
 
-    def is_right_collision(object1, object2):
+    def is_right_collision(object1, object2, is_collision=None):
         """returns: boolean; if object1 has collided with object2's right_edge (movement does not matter)"""
         prev_object1 = HistoryKeeper.get_last(object1.name)
         prev_object2 = HistoryKeeper.get_last(object2.name)
@@ -47,8 +50,9 @@ class CollisionsFinder:
         if prev_object1 is None or prev_object2 is None:
             return False
 
+        is_collision = is_collision if is_collision is not None else CollisionsFinder.is_collision(object1, object2)
         object1_has_moved_into_object2 = (prev_object1.x_coordinate > prev_object2.right_edge and object1.x_coordinate < object2.right_edge)
-        is_moving_right_collision = CollisionsFinder.is_collision(object1, object2) and object1_has_moved_into_object2
+        is_moving_right_collision = is_collision and object1_has_moved_into_object2
 
         objects_are_touching = object1.x_coordinate == object2.right_edge and CollisionsFinder.is_height_collision(object1, object2)
         return is_moving_right_collision or objects_are_touching
@@ -127,7 +131,7 @@ class CollisionsFinder:
         object2_path = ObjectPath(prev_object2, object2)
         collision_time = -1
         is_moving_collision = False
-        
+
         if object2_has_moved and object1_has_moved:
             # 4 cases because there are two paths for the objects - 2^2 possible combinations
             collision_time = CollisionsUtilityFunctions.get_path_collision_time(object1_path, object2_path)
@@ -198,17 +202,17 @@ class CollisionsFinder:
     def sim_collision(object1, object2):
         return CollisionsFinder.is_height_collision(object1, object2) and CollisionsFinder.is_length_collision(object1, object2)
 
-    def is_a_bottom_collision(object1, object2):
+    def is_a_bottom_collision(object1, object2, is_collision=None):
         """returns: boolean; if either object1 or object2 collided with the other one's bottom"""
 
-        return CollisionsFinder.is_bottom_collision(object1, object2) or CollisionsFinder.is_bottom_collision(object2, object1)
+        return CollisionsFinder.is_bottom_collision(object1, object2, is_collision) or CollisionsFinder.is_bottom_collision(object2, object1, is_collision)
 
-    def is_a_top_collision(object1, object2):
+    def is_a_top_collision(object1, object2, is_collision=None):
         """returns: boolean; if either object1 or object2 collided with the other one's top"""
 
-        return CollisionsFinder.is_top_collision(object1, object2) or CollisionsFinder.is_top_collision(object2, object1)
+        return CollisionsFinder.is_top_collision(object1, object2, is_collision) or CollisionsFinder.is_top_collision(object2, object1, is_collision)
 
-    def is_bottom_collision(object1, object2):
+    def is_bottom_collision(object1, object2, is_collision=None):
         """ summary: finds out if the object's collided from the bottom
             
             params: 
@@ -226,12 +230,14 @@ class CollisionsFinder:
             return False
 
         objects_are_touching = object1.y_coordinate == object2.bottom and CollisionsFinder.is_length_collision(object1, object2)
+        is_collision = is_collision if is_collision is not None else CollisionsFinder.is_collision(object1, object2)
+
 
         # Meaning that it isn't the bottom object anymore
-        return (CollisionsFinder.is_collision(object1, object2) and prev_object1.y_coordinate > prev_object2.bottom and
+        return (is_collision and prev_object1.y_coordinate > prev_object2.bottom and
                 object1.y_coordinate < object2.bottom) or objects_are_touching
 
-    def is_top_collision(object1, object2):
+    def is_top_collision(object1, object2, is_collision=None):
         """ summary: finds out if the object's collided from the bottom
 
             params:
@@ -249,9 +255,10 @@ class CollisionsFinder:
             return False
 
         objects_are_touching = object1.bottom == object2.y_coordinate and CollisionsFinder.is_length_collision(object1, object2)
+        is_collision = is_collision if is_collision is not None else CollisionsFinder.is_collision(object1, object2)
 
         # Meaning that it isn't the bottom object anymore
-        return (CollisionsFinder.is_collision(object1, object2) and prev_object1.bottom < prev_object2.y_coordinate
+        return (is_collision and prev_object1.bottom < prev_object2.y_coordinate
                 and object1.bottom > object2.y_coordinate) or objects_are_touching
 
     def get_path_line_collision(path, line):
@@ -274,8 +281,3 @@ class CollisionsFinder:
         # Have to round the numbers otherwise there is a weird python rounding thing with floats
         return (rounded(prev_obect.x_coordinate - object.x_coordinate, 4) != 0 or
                 rounded(prev_obect.y_coordinate - object.y_coordinate, 4) != 0)
-
-
-
-
-        

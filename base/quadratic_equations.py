@@ -53,6 +53,7 @@ class QuadraticEquation:
         self.a = (other_point.y_coordinate - self.k) / pow((other_point.x_coordinate - self.h), 2)
 
 
+# TODO fix jumping logic again; go back to original design (that is a huge rip lol) ---> or do I...
 class PhysicsEquation:
     """A class that uses common physics equations for initial_velocity, acceleration, and initial_distance"""
     acceleration = 0
@@ -79,26 +80,12 @@ class PhysicsEquation:
 
         self.acceleration = (2 * displacement) / pow(time, 2)
 
-    def set_acceleration(self, time, displacement):
+    def set_acceleration(self, time, velocity_change):
         """Like 'set_gravity_acceleration) except it is using a normal physics equation where the distance from acceleration is not halved"""
 
-        self.acceleration = displacement / time
+        self.acceleration = velocity_change / time
 
-    def set_velocity(self, vertex, time, acceleration=None):
-        """ summary: sets the velocity of knowing that d = vit + 1/2at^2 + di
-                     IMPORTANT: initial_distance and acceleration must be set prior to this being called
-
-            params:
-                vertex: double; the highest/lowest point of the parabola
-                time: double; the time it takes to get to the vertex
-
-            returns: None
-        """
-
-        acceleration = acceleration if acceleration is not None else self.acceleration
-        self.initial_velocity = (vertex - self.initial_distance) / time - acceleration * time * 1/2
-
-    def set_all_variables(self, vertex, time, acceleration_displacement, initial_distance):
+    def set_all_variables(self, vertex, time, initial_distance):
         """ summary: sets all the variables; calls set_velocity and set_gravity_acceleration
 
             params:
@@ -111,8 +98,10 @@ class PhysicsEquation:
         """
 
         self.initial_distance = initial_distance
-        self.set_gravity_acceleration(time, acceleration_displacement)
-        self.set_velocity(vertex, time)
+
+        # Gotten using math
+        self.initial_velocity = (-2 * initial_distance + 2 * vertex)/time
+        self.acceleration = 2*(initial_distance - vertex)/pow(time, 2)
 
     def set_variables(self, **kwargs):
         """ summary: sets the variables to the number provided
@@ -138,7 +127,7 @@ class PhysicsEquation:
 
             returns: double; the number that is gotten when time is plugged into the equation
         """
-        return 1 / 2 * self.acceleration * pow(time, 2) + self.initial_velocity * time + self.initial_distance
+        return 1/2 * self.acceleration * pow(time, 2) + self.initial_velocity * time + self.initial_distance
 
     def get_velocity_using_time(self, time):
         """ summary: uses the fact that the initial_velocity is equal to vi - at^2 where vi is the initial initial_velocity, a is acceleration, and t is time
@@ -206,8 +195,7 @@ class PhysicsPath(PhysicsEquation):
     time = 0
     last_time = 0
 
-    def __init__(self, game_object=None, attribute_modifying="", height_of_path=0, initial_distance=0, time=.5,
-                 acceleration_displacement=screen_height/2):
+    def __init__(self, game_object=None, attribute_modifying="", height_of_path=0, initial_distance=0, time=.5):
 
         """Initializes the object"""
 
@@ -216,7 +204,7 @@ class PhysicsPath(PhysicsEquation):
         self.height_of_path = height_of_path
 
         # Adding the initial_distance, so it that is the height of the parabola
-        self.set_all_variables(height_of_path, time, acceleration_displacement, initial_distance)
+        self.set_all_variables(height_of_path + initial_distance, time, initial_distance)
 
     def run(self, is_reset_event, is_start_event, is_using_everything=False):
         """Runs the code for the game_object following the physics path"""
@@ -242,7 +230,6 @@ class PhysicsPath(PhysicsEquation):
         elif should_change_player_coordinates:
             self.game_object.__dict__[self.attribute_modifying] = self.get_distance(self.current_time)
 
-
     def start(self):
         """Starts the physics path"""
 
@@ -260,7 +247,7 @@ class PhysicsPath(PhysicsEquation):
         """Sets the initial distance, so the height of the parabola is equal to the vertex"""
 
         self.initial_distance = initial_distance
-        self.set_velocity(self.height_of_path + self.initial_distance, self.time)
+        self.set_all_variables(self.initial_distance + self.height_of_path, self.time, self.initial_distance)
 
     def get_distance_from_velocity(self):
         """returns: double; the distance from velocity (and initial distance)"""

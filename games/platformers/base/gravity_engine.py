@@ -6,12 +6,12 @@ class GravityEngine:
 
     game_object_to_physics_path = {}
 
-    def __init__(self, game_objects, time, acceleration_displacement):
+    def __init__(self, game_objects, acceleration):
         """Initializes the object"""
 
         for game_object in game_objects:
             physics_path = PhysicsPath()
-            physics_path.set_gravity_acceleration(time, acceleration_displacement)
+            physics_path.acceleration = acceleration
             self.game_object_to_physics_path[game_object] = physics_path
 
     def run(self):

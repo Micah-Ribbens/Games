@@ -15,22 +15,19 @@ import pygame
 from base.quadratic_equations import PhysicsPath
 from base.utility_functions import key_is_hit
 from base.velocity_calculator import VelocityCalculator
+from games.platformers.weapons.bouncy_projectile_thrower import BouncyProjectileThrower
+from games.platformers.weapons.projectile_thrower import ProjectileThrower
+from games.platformers.weapons.sword import Sword
+from games.platformers.base.platformer_variables import *
 
 
 class Player(GameObject):
-    # class States:
-    #     """The states the player can be in"""
-    #
-    #     JUMPING = "Jumping"
-    #     RUNNING = "Running"
-    #     DECELERATING = "Decelerating"
-
     # Modifiable numbers
-    max_jump_height = VelocityCalculator.give_measurement(screen_height, 40)
-    running_deceleration_time = .4
+    max_jump_height = displacement
+    running_deceleration_time = .3
     base_y_coordinate = 0
     base_x_coordinate = 100
-    max_velocity = VelocityCalculator.give_velocity(screen_length, 800)
+    max_velocity = VelocityCalculator.give_velocity(screen_length, 700)
     time_to_get_to_max_velocity = .3
 
     # Miscellaneous
@@ -45,12 +42,15 @@ class Player(GameObject):
     current_velocity = 0
     normal_upwards_velocity = 0
     paths_and_events = None
+    current_weapon = None
+    hit_points = 20
 
     # Booleans
     can_move_down = True
     can_move_left = True
     can_move_right = True
     is_on_platform = True
+    is_facing_right = True
 
     # Keys
     left_key = None
@@ -69,7 +69,7 @@ class Player(GameObject):
         height = VelocityCalculator.give_measurement(screen_height, 15)
         super().__init__(100, screen_height - 200, height, length, white)
 
-        self.jumping_equation = PhysicsPath(self, "y_coordinate", -self.max_jump_height, self.y_coordinate)
+        self.jumping_equation = PhysicsPath(self, "y_coordinate", -displacement, self.y_coordinate)
         self.jumping_equation.set_initial_distance(self.y_coordinate)
         self.jumping_event, self.right_event, self.left_event = Event(), Event(), Event()
         self.deceleration_event = TimedEvent(self.running_deceleration_time, False)
@@ -77,12 +77,14 @@ class Player(GameObject):
         self.acceleration_path = PhysicsPath()
         self.acceleration_path.set_acceleration(self.time_to_get_to_max_velocity, self.max_velocity)
         self.normal_upwards_velocity = self.jumping_equation.initial_velocity
+        self.current_weapon = ProjectileThrower(self.attack_key, self)
 
         self.paths_and_events = [self.jumping_equation, self.deceleration_path, self.deceleration_event, self.acceleration_path]
 
     def run(self):
         """Runs all the code that is necessary for the player to work properly"""
 
+        self.current_weapon.run()
         self.jumping_event.run(key_is_hit(self.jump_key))
         self.right_event.run(key_is_hit(self.right_key))
         self.left_event.run(key_is_hit(self.left_key))
@@ -92,6 +94,10 @@ class Player(GameObject):
         if self.right_event.has_stopped() or self.left_event.has_stopped():
             self.decelerate_player(self.right_event.has_stopped())
             self.acceleration_path.reset()
+
+        else:
+            self.is_facing_right = False if self.left_event.is_click() and self.can_move_left else self.is_facing_right
+            self.is_facing_right = True if self.right_event.is_click() and self.can_move_right else self.is_facing_right
 
         if self.deceleration_event.has_finished() or self.player_movement_direction_is_same_as_deceleration():
             self.set_current_velocity()
@@ -169,6 +175,7 @@ class Player(GameObject):
 
         self.deceleration_path.initial_distance = self.x_coordinate
         self.deceleration_path.initial_velocity = self.current_velocity if is_moving_right else -self.current_velocity
+        self.is_facing_right = is_moving_right
 
         # If the player is not at maximum velocity it shouldn't take as long to decelerate
         time_needed = self.running_deceleration_time / (self.max_velocity /  self.current_velocity)
@@ -217,8 +224,15 @@ class Player(GameObject):
         self.jumping_equation.reset()
         self.y_coordinate = y_coordinate
 
+    def get_velocity(self):
+        """returns: double; the current velocity of the player"""
 
+        if self.deceleration_event.has_finished():
+            return self.current_velocity
 
+        else:
+            print(self.deceleration_path.current_time, self.deceleration_path.get_velocity_using_time(self.deceleration_path.current_time))
+            return self.deceleration_path.get_velocity_using_time(self.deceleration_path.current_time)
 
 
 
