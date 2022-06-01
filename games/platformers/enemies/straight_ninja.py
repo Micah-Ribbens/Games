@@ -14,8 +14,6 @@ class StraightNinja(Enemy):
     height = VelocityCalculator.give_measurement(screen_height, 10)
     weapon = None
     is_facing_right = None
-    index_of_enemy = 0
-    weapon_index_offset = 1
 
     def __init__(self, damage, hit_points, platform, player):
         """Initializes the object"""
@@ -24,6 +22,7 @@ class StraightNinja(Enemy):
 
         y_coordinate = platform.y_coordinate - self.height
         wait_time = .5
+        # Creating the path for the ninja
         self.path = ActionPath(Point(platform.right_edge - self.length, y_coordinate), self, self.velocity)
         self.path.add_point(Point(platform.x_coordinate, y_coordinate), lambda: [])
         self.path.add_point(Point(platform.x_coordinate, y_coordinate), self.shoot_star, wait_time)
@@ -38,12 +37,6 @@ class StraightNinja(Enemy):
 
     def hit_by_player(self, player_weapon, index_of_sub_component):
         pass
-
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
-        """Runs what should happen when the enemy or its projectiles hits an inanimate object"""
-
-        if index_of_sub_component != self.index_of_enemy:
-            self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component - self.weapon_index_offset)
 
     def run(self):
         """Runs everything necessary in order for this enemy to work"""

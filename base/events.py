@@ -129,7 +129,7 @@ class TimedEvent:
         self.current_time = 0
 
     def has_finished(self):
-        """returns: boolean; if the event has either not started or has finished"""
+        """returns: boolean; if the event has either not started or is done"""
 
         return not self.is_started or self.is_done()
 

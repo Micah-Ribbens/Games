@@ -11,7 +11,6 @@ class BouncyNinja(StraightNinja):
         super().__init__(damage, hit_points, platform, player)
         self.weapon = BouncyProjectileThrower(lambda: False, self)
 
-
     @property
     def projectile_height(self):
         return self.player.height / 2

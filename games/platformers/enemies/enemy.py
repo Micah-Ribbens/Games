@@ -14,6 +14,8 @@ class Enemy(WeaponUser, abc.ABC):
     sub_components = []
     platform = None
     player = None
+    weapon_index_offset = 1
+    index_of_enemy = 0
 
     def __init__(self, damage, hit_points, platform, player, x_coordinate, y_coordinate, length, height):
         """Initializes the object"""
@@ -39,5 +41,11 @@ class Enemy(WeaponUser, abc.ABC):
         """returns: Component[]; all the components that should be ran and rendered"""
 
         return self.sub_components
+
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
+        """Runs what should happen if the enemy or something the player threw hit an inanimate object"""
+
+        if index_of_sub_component != self.index_of_enemy:
+            self.run_inanimate_object_collision(inanimate_object, index_of_sub_component - self.weapon_index_offset)
 
 

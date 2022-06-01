@@ -73,9 +73,6 @@ class GameObject(Component):
             GameObject.render(GameObject(x_coordinate, y_coordinate, height, length, segment.color))
 
     def set_x_coordinate(self, x_coordinate):
-
-        # if self.x_coordinate != x_coordinate:
-        #     raise ValueError("BAAAAAD")
         self.x_coordinate = x_coordinate
 
     def set_y_coordinate(self, y_coordinate):

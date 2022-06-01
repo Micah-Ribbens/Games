@@ -12,7 +12,7 @@ class Projectile(Ellipse):
     size = VelocityCalculator.give_measurement(screen_height, 6)
     length, height = size, size
     is_moving_right = False
-    velocity = VelocityCalculator.give_velocity(screen_length, 600)
+    velocity = 0
     is_runnable = False
     is_destroyed = False
 
@@ -32,8 +32,6 @@ class Projectile(Ellipse):
 
 class ProjectileThrower(Weapon):
     """A weapon that is used for throwing projectiles"""
-
-    sub_components = []
 
     def __init__(self, use_key_action, player):
         """Initializes the object"""

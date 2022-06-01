@@ -33,13 +33,13 @@ class Sword(Weapon, LineSegment):
         self.extending_timed_event.run(self.extending_timed_event.current_time > self.extending_timed_event.time_needed, False)
 
         if not self.extending_timed_event.has_finished():
-            self.start_point = Point(self.get_weapon_x_coordinate(0, self.is_moving_right), self.player.y_midpoint)
-            self.end_point = Point(self.start_point.x_coordinate - self.get_horizontal_displacement(),
+            self.start_point = Point(self.get_weapon_x_coordinate(0, self.is_moving_right), self.player.projectile_y_coordinate)
+            self.end_point = Point(self.start_point.x_coordinate + self.get_horizontal_displacement(),
                                    self.start_point.y_coordinate - self.get_vertical_displacement())
 
+        # If the sword is not extending then it's length should be 0 so it doesn't render or cause collisions
         else:
             self.start_point, self.end_point = Point(0, 0), Point(0, 0)
-
 
     def run_player_collision(self, player, index_of_sub_component):
         """Runs what should happen when the player and the weapon collide"""
@@ -55,26 +55,18 @@ class Sword(Weapon, LineSegment):
         """Runs what should happen when the person who plays the game tries to use the weapon"""
 
         self.extending_timed_event.start()
-        self.is_moving_right = self.player.is_facing_right
+        self.is_moving_right = self.player.should_shoot_right
 
     def get_horizontal_displacement(self):
         """returns: double; the horizontal displacement from the player (based on the player's direction)"""
 
         distance = math.sin(self.get_radians()) * self.length
-
-        # TODO figure out why this works
-        return distance if not self.is_moving_right else -distance
+        return distance if self.is_moving_right else -distance
 
     def get_vertical_displacement(self):
         """returns: double; the vertical displacement from the player"""
 
         return math.cos(self.get_radians()) * self.length
-
-    def render(self):
-        """Renders the object onto the screen"""
-
-        if not self.extending_timed_event.has_finished():
-            LineSegment(self.start_point, self.end_point).render()
 
     def get_radians(self):
         """returns: double; the radian amount of the sword"""

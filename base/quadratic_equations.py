@@ -193,18 +193,33 @@ class PhysicsPath(PhysicsEquation):
     attribute_modifying = None
     height_of_path = 0
     time = 0
+    max_time = 0
     last_time = 0
+    has_max_time = False
 
-    def __init__(self, game_object=None, attribute_modifying="", height_of_path=0, initial_distance=0, time=.5):
+    # def __init__(self, game_object=None, attribute_modifying="", height_of_path=0, initial_distance=0, time=.5):
+    def __init__(self, **kwargs):
+        """ summary: initializes the object
+
+            params:
+                game_object: GameObject; the game object that is following this path
+                attribute_modifying: String; the name of the attribute this path is modifying
+                time: double; the time to the vertex of the path
+                height_of_path: double; the difference between the initial distance and the vertex of the path
+                max_time: double; the max time of the path- the time the path should end
+
+            returns: None
+        """
 
         """Initializes the object"""
 
-        self.game_object, self.attribute_modifying = game_object, attribute_modifying
-        self.time = time
-        self.height_of_path = height_of_path
+        self.game_object, self.attribute_modifying = get_kwarg_item(kwargs, "game_object", None), get_kwarg_item(kwargs, "attribute_modifying", "")
+        self.time, self.height_of_path = get_kwarg_item(kwargs, "time", .5), get_kwarg_item(kwargs, "height_of_path", 0)
+        self.initial_distance, self.max_time = get_kwarg_item(kwargs, "initial_distance", 0), get_kwarg_item(kwargs, "max_time", 0)
+        self.has_max_time = kwargs.get("max_time") is not None
 
         # Adding the initial_distance, so it that is the height of the parabola
-        self.set_all_variables(height_of_path + initial_distance, time, initial_distance)
+        self.set_all_variables(self.height_of_path + self.initial_distance, self.time, self.initial_distance)
 
     def run(self, is_reset_event, is_start_event, is_using_everything=False):
         """Runs the code for the game_object following the physics path"""
@@ -269,8 +284,21 @@ class PhysicsPath(PhysicsEquation):
         """returns: double; the displacement from acceleration normally (not with gravity)"""
         
         return self.acceleration * self.current_time
-    
 
+    def is_done(self, should_reset=False):
+        """returns: boolean; if the path is finished (and if 'should_reset' it will reset it)"""
+
+        return_value = self.current_time >= self.max_time and self.has_max_time
+
+        if should_reset and return_value:
+            self.reset()
+
+        return return_value
+
+    def has_finished(self):
+        """returns: boolean; if the path has either not started or is done"""
+
+        return not self.is_started or self.is_done()
 
 
 

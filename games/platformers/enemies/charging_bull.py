@@ -28,12 +28,6 @@ class ChargingBull(Enemy):
         self.acceleration_path.set_acceleration(self.time_to_get_to_max_velocity, self.max_velocity)
         self.is_moving_right = False
 
-    def hit_player(self, player, index_of_sub_component):
-        pass
-
-    def hit_by_player(self, player_weapon, index_of_sub_component):
-        pass
-
     def run(self):
         """Runs all the code for the charging bull"""
 
@@ -63,3 +57,8 @@ class ChargingBull(Enemy):
             self.is_moving_right = True
             self.x_coordinate = inanimate_object.right_edge
 
+    def hit_player(self, player, index_of_sub_component):
+        pass
+
+    def hit_by_player(self, player_weapon, index_of_sub_component):
+        pass
