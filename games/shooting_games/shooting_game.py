@@ -1,10 +1,8 @@
-import pygame
-
 from base.colors import red, blue, white
 from base.dimensions import Dimensions
 from base.engines import CollisionsFinder
 from base.game_movement import GameMovement
-from base.important_variables import screen_height, screen_length
+from base.important_variables import *
 from base.utility_classes import HistoryKeeper
 from base.velocity_calculator import VelocityCalculator
 from games.shooting_games.base.bullet import Bullet

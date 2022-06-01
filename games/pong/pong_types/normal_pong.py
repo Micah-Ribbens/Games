@@ -3,7 +3,6 @@ from base.velocity_calculator import VelocityCalculator
 from base.engines import CollisionsFinder
 from games.pong.pong_types.pong_type import PongType
 from games.pong.base_pong.players import Paddle, AI
-import pygame
 
 
 class NormalPong(PongType):

@@ -21,7 +21,7 @@ class BouncyProjectile(Projectile):
         super().__init__(x_coordinate, y_coordinate, is_moving_right, player_velocity)
         time_to_vertex = .2
         self.projectile_path = PhysicsPath(self, "y_coordinate", -projectile_height, y_coordinate - self.height, time_to_vertex)
-        self.projectile_path.set_initial_distance(y_coordinate)
+        self.projectile_path.set_initial_distance(y_coordinate - self.height)
         self.projectile_path.current_time = time_to_vertex
 
     def run(self):
@@ -41,7 +41,6 @@ class BouncyProjectile(Projectile):
         self.y_coordinate = y_coordinate - self.height
 
 
-
 class BouncyProjectileThrower(ProjectileThrower):
     """A projectile thrower except the projectiles bounce"""
 
@@ -59,6 +58,6 @@ class BouncyProjectileThrower(ProjectileThrower):
     def run_upon_activation(self):
         """Runs the code that should be completed when the code decides to use this weapon"""
 
-        self.sub_components.append(BouncyProjectile(self.get_weapon_x_coordinate(Projectile.size, self.player.is_facing_right),
-                                                    self.player.y_midpoint, self.player.is_facing_right, self.player.height / 2, self.player.max_velocity))
+        self.sub_components.append(BouncyProjectile(self.get_weapon_x_coordinate(Projectile.size, self.player.should_shoot_right),
+                                                    self.player.projectile_y_coordinate, self.player.should_shoot_right, self.player.projectile_height, self.player.projectile_velocity))
 

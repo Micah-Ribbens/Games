@@ -1,5 +1,3 @@
-import pygame
-
 from gui_components.grid import Grid
 from base.utility_functions import percentages_to_numbers, change_attributes
 from games.pong.gui.menu_item import MenuItem

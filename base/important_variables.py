@@ -9,3 +9,4 @@ screen_height = 650
 game_window = Window(screen_length, screen_height, "Pong Reloaded", background_color)
 function_runner = FunctionRunner()
 changer = Changer()
+pygame.init()

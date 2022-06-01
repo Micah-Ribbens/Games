@@ -1,12 +1,9 @@
-import pygame
-
 from base.engines import CollisionsFinder
-from base.important_variables import screen_height, screen_length
 from base.utility_classes import HistoryKeeper
-from base.velocity_calculator import VelocityCalculator
 from games.platformers.base.gravity_engine import GravityEngine
 from games.platformers.base.platform import Platform
 from games.platformers.base.player import Player
+from games.platformers.enemies.straight_ninja import StraightNinja
 from gui_components.screen import Screen
 from games.platformers.base.platformer_variables import *
 
@@ -16,6 +13,7 @@ class PlatformerScreen(Screen):
 
     player = Player(pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_s, pygame.K_f)
     gravity_engine = None
+    enemy = None
     platforms = []
 
     def __init__(self):
@@ -28,8 +26,9 @@ class PlatformerScreen(Screen):
         # self.platforms = [Platform(), Platform(Platform().right_edge + 200, Platform().y_coordinate - self.player.max_jump_height, 200, 200, True)]
 
         # One Long Platform
-        self.platforms = [Platform(0, 300, screen_length, 100, True)]
+        self.platforms = [Platform(100, 300, 800, 100, True)]
 
+        self.player.x_coordinate = self.platforms[0].x_coordinate
         self.gravity_engine = GravityEngine([self.player], self.player.jumping_equation.acceleration)
         self.player.jumping_equation.acceleration = self.gravity_engine.game_object_to_physics_path[self.player].acceleration
         self.player.y_coordinate = self.platforms[0].y_coordinate - self.player.height
@@ -37,6 +36,7 @@ class PlatformerScreen(Screen):
         self.player.set_y_coordinate(self.player.base_y_coordinate)
 
         self.components = [self.player] + self.platforms
+        self.enemy = StraightNinja(20, 20, self.platforms[0], self.player)
 
     def run(self):
         """Runs all the code necessary in order for the platformer to work"""
@@ -49,7 +49,7 @@ class PlatformerScreen(Screen):
             self.reset_game()
 
         self.add_game_objects()
-        self.components = [self.player] + self.platforms + self.player.current_weapon.get_sub_components()
+        self.components = [self.player] + self.platforms + self.player.weapon.get_sub_components() + self.enemy.get_sub_components()
 
     def reset_game(self):
         """Resets the game after the player's death"""
@@ -62,14 +62,20 @@ class PlatformerScreen(Screen):
         """Runs all the collisions between the player, projectiles, and enemies"""
 
         self.run_platform_collisions()
-        weapon = self.player.current_weapon
+        weapon = self.player.weapon
 
         for platform in self.platforms:
             for x in range(len(weapon.get_sub_components())):
                 sub_component = weapon.get_sub_components()[x]
                 if CollisionsFinder.is_collision(platform, sub_component):
-                    weapon.run_inanimate_object_collision(platform, x)
+                    self.player.run_inanimate_object_collision(platform, x)
 
+            for x in range(len(self.enemy.get_sub_components())):
+                sub_component = self.enemy.get_sub_components()[x]
+
+                if CollisionsFinder.is_collision(platform, sub_component) and sub_component != self.enemy:
+                    CollisionsFinder.is_collision(platform, sub_component)
+                    self.enemy.run_inanimate_object_collision(platform, x)
 
     def run_platform_collisions(self):
         """Runs all the collisions between the player and the platforms"""
@@ -177,7 +183,11 @@ class PlatformerScreen(Screen):
 
         HistoryKeeper.add(self.player, self.player.name, True)
 
-        for weapon in self.player.current_weapon.get_sub_components():
+        for weapon in self.player.weapon.get_sub_components():
+            weapon.name = id(weapon)
+            HistoryKeeper.add(weapon, weapon.name, True)
+
+        for weapon in self.enemy.get_sub_components():
             weapon.name = id(weapon)
             HistoryKeeper.add(weapon, weapon.name, True)
 

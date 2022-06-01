@@ -13,25 +13,25 @@ class Weapon(abc.ABC):
 
     damage = 10
     hit_points = 10
-    use_key = None
+    use_key_action = None
     use_key_event = None
     player = None
     sub_components = []
     is_runnable = False
     wait_event = None
 
-    def __init__(self, damage, hit_points, use_key, player, cool_down_time):
+    def __init__(self, damage, hit_points, use_key_action, player, cool_down_time):
         """Initilizes the object"""
 
         self.use_key_event = Event()
-        self.damage, self.hit_points, self.use_key = damage, hit_points, use_key
+        self.damage, self.hit_points, self.use_key_action = damage, hit_points, use_key_action
         self.player = player
         self.name = id(self)
         self.wait_event = TimedEvent(cool_down_time, False)
         self.sub_components = [self]
 
     def run(self):
-        self.use_key_event.run(key_is_hit(self.use_key))
+        self.use_key_event.run(self.use_key_action())
         self.wait_event.run(self.wait_event.current_time >= self.wait_event.time_needed, False)
 
         if self.use_key_event.is_click() and self.wait_event.has_finished():

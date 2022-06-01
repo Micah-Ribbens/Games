@@ -1,5 +1,3 @@
-import pygame
-
 from base.drawable_objects import GameObject
 from base.events import TimedRange, TimedEvent
 from base.game_movement import GameMovement
@@ -9,6 +7,7 @@ from base.utility_functions import key_is_hit
 from base.velocity_calculator import VelocityCalculator
 from games.shooting_games.base.bullet import Bullet
 from base.colors import *
+from base.important_variables import *
 
 
 class Player(GameObject):

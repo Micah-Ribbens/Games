@@ -4,13 +4,7 @@ from base.colors import red, light_gray, white
 from base.drawable_objects import Segment
 from base.events import Event, TimedEvent
 from base.game_movement import GameMovement
-from base.important_variables import (
-    screen_height,
-    screen_length
-)
-
-from base.engines import *
-import pygame
+from base.important_variables import *
 
 from base.quadratic_equations import PhysicsPath
 from base.utility_functions import key_is_hit
@@ -19,9 +13,10 @@ from games.platformers.weapons.bouncy_projectile_thrower import BouncyProjectile
 from games.platformers.weapons.projectile_thrower import ProjectileThrower
 from games.platformers.weapons.sword import Sword
 from games.platformers.base.platformer_variables import *
+from games.platformers.weapons.weapon_user import WeaponUser
 
 
-class Player(GameObject):
+class Player(WeaponUser):
     # Modifiable numbers
     max_jump_height = displacement
     running_deceleration_time = .3
@@ -42,7 +37,6 @@ class Player(GameObject):
     current_velocity = 0
     normal_upwards_velocity = 0
     paths_and_events = None
-    current_weapon = None
     hit_points = 20
 
     # Booleans
@@ -77,14 +71,14 @@ class Player(GameObject):
         self.acceleration_path = PhysicsPath()
         self.acceleration_path.set_acceleration(self.time_to_get_to_max_velocity, self.max_velocity)
         self.normal_upwards_velocity = self.jumping_equation.initial_velocity
-        self.current_weapon = ProjectileThrower(self.attack_key, self)
+        self.weapon = BouncyProjectileThrower(lambda: key_is_hit(self.attack_key), self)
 
         self.paths_and_events = [self.jumping_equation, self.deceleration_path, self.deceleration_event, self.acceleration_path]
 
     def run(self):
         """Runs all the code that is necessary for the player to work properly"""
 
-        self.current_weapon.run()
+        self.weapon.run()
         self.jumping_event.run(key_is_hit(self.jump_key))
         self.right_event.run(key_is_hit(self.right_key))
         self.left_event.run(key_is_hit(self.left_key))

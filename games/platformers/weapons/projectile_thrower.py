@@ -35,10 +35,10 @@ class ProjectileThrower(Weapon):
 
     sub_components = []
 
-    def __init__(self, use_key, player):
+    def __init__(self, use_key_action, player):
         """Initializes the object"""
 
-        super().__init__(10, 10, use_key, player, .2)
+        super().__init__(10, 10, use_key_action, player, .2)
         self.sub_components = []
 
     def run(self):
@@ -59,8 +59,8 @@ class ProjectileThrower(Weapon):
     def run_upon_activation(self):
         """Runs the code that should be completed when the code decides to use this weapon"""
 
-        self.sub_components.append(Projectile(self.get_weapon_x_coordinate(Projectile.size, self.player.is_facing_right),
-                                              self.player.y_midpoint, self.player.is_facing_right, self.player.max_velocity))
+        self.sub_components.append(Projectile(self.get_weapon_x_coordinate(Projectile.size, self.player.should_shoot_right),
+                                              self.player.projectile_y_coordinate - Projectile.size, self.player.should_shoot_right, self.player.projectile_velocity))
 
     def run_player_collision(self, player, index_of_sub_component):
         """Runs the code for figuring out what to do when one of the projectiles hits a player"""

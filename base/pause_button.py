@@ -5,8 +5,7 @@ from base.important_variables import (
     game_window
 )
 from base.velocity_calculator import VelocityCalculator
-import pygame
-pygame.init()
+from base.important_variables import *
 
 class PauseButton(ClickableComponent):
     """Extends ClickableComponent; provides rendering a pause button and a way to check if the pause button is clicked"""

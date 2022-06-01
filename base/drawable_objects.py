@@ -1,10 +1,4 @@
-from math import sqrt
-
-import pygame
-
 from base.dimensions import Dimensions
-from base.important_variables import game_window
-from base.utility_classes import HistoryKeeper
 from base.utility_functions import *
 
 from gui_components.component import Component

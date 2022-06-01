@@ -1,4 +1,3 @@
-from base.utility_classes import HistoryKeeper
 
 
 class FunctionRunner:
@@ -58,10 +57,10 @@ class FunctionRunner:
 
         self.functions[function] = condition
 
-    def track_game_object(self, game_object):
-        """Keeps track of the game_object so it will be added to HistoryKeeper every cycle"""
-
-        self.tracked_objects.append(game_object)
+    # def track_game_object(self, game_object):
+    #     """Keeps track of the game_object so it will be added to HistoryKeeper every cycle"""
+    #
+    #     self.tracked_objects.append(game_object)
 
     def run(self):
         """Runs all the functions and adds all the tracked objects to the HistoryKeeper"""
@@ -83,5 +82,5 @@ class FunctionRunner:
             else:
                 function()
 
-        for tracked_object in self.tracked_objects:
-            HistoryKeeper.add(tracked_object, id(tracked_object), True)
+        # for tracked_object in self.tracked_objects:
+        #     HistoryKeeper.add(tracked_object, id(tracked_object), True)
