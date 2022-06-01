@@ -3,6 +3,7 @@ from base.utility_classes import HistoryKeeper
 from games.platformers.base.gravity_engine import GravityEngine
 from games.platformers.base.platform import Platform
 from games.platformers.base.player import Player
+from games.platformers.enemies.charging_bull import ChargingBull
 from games.platformers.enemies.straight_ninja import StraightNinja
 from gui_components.screen import Screen
 from games.platformers.base.platformer_variables import *
@@ -26,7 +27,10 @@ class PlatformerScreen(Screen):
         # self.platforms = [Platform(), Platform(Platform().right_edge + 200, Platform().y_coordinate - self.player.max_jump_height, 200, 200, True)]
 
         # One Long Platform
-        self.platforms = [Platform(100, 300, 800, 100, True)]
+        # self.platforms = [Platform(100, 300, 800, 100, True)]
+
+        # Sandwich Platform
+        self.platforms = [Platform(100, 300, 800, 100, True), Platform(0, 200, 100, 100, True), Platform(910, 200, 100, 100, True)]
 
         self.player.x_coordinate = self.platforms[0].x_coordinate
         self.gravity_engine = GravityEngine([self.player], self.player.jumping_equation.acceleration)
@@ -36,7 +40,7 @@ class PlatformerScreen(Screen):
         self.player.set_y_coordinate(self.player.base_y_coordinate)
 
         self.components = [self.player] + self.platforms
-        self.enemy = StraightNinja(20, 20, self.platforms[0], self.player)
+        self.enemy = ChargingBull(20, 20, self.platforms[0], self.player)
 
     def run(self):
         """Runs all the code necessary in order for the platformer to work"""
@@ -73,8 +77,7 @@ class PlatformerScreen(Screen):
             for x in range(len(self.enemy.get_sub_components())):
                 sub_component = self.enemy.get_sub_components()[x]
 
-                if CollisionsFinder.is_collision(platform, sub_component) and sub_component != self.enemy:
-                    CollisionsFinder.is_collision(platform, sub_component)
+                if CollisionsFinder.is_collision(platform, sub_component) and self.platforms.index(platform) != 0:
                     self.enemy.run_inanimate_object_collision(platform, x)
 
     def run_platform_collisions(self):

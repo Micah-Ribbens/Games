@@ -192,17 +192,15 @@ class Player(WeaponUser):
         """returns: double; the current velocity of the player"""
 
         deceleration_has_not_finished = self.deceleration_path.current_time > 0
-        self.acceleration_path.run(False, key_is_hit(self.left_key) or key_is_hit(self.right_key), True)
-
         if deceleration_has_not_finished:
             current_velocity = self.deceleration_path.get_velocity_using_time(self.deceleration_path.current_time)
             # Figuring out the time to get to that velocity, so the player can continue to accelerate to the max velocity
+            self.acceleration_path.start()
             self.acceleration_path.current_time = sqrt(abs(current_velocity) / self.acceleration_path.acceleration)
 
-        self.current_velocity = self.acceleration_path.get_acceleration_displacement()
+        GameMovement.run_acceleration(self, key_is_hit(self.left_key) or key_is_hit(self.right_key), self.acceleration_path)
 
-        if self.acceleration_path.current_time > self.time_to_get_to_max_velocity:
-            self.current_velocity = self.max_velocity
+
 
     def can_decelerate(self):
         """returns: boolean; if the player can decelerate (they couldn't if an object was in the way"""

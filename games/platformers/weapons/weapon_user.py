@@ -27,7 +27,7 @@ class WeaponUser(GameObject):
     def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
         """Runs what should happen when the weapon and an inanimate object collide"""
 
-        self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component)
+        self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component - 1)
 
     def run_upon_activation(self):
         """Runs what should happen when the person who plays the game tries to use the weapon"""
