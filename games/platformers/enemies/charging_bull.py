@@ -7,7 +7,7 @@ from games.platformers.enemies.enemy import Enemy
 
 
 class ChargingBull(Enemy):
-    """An enemy that charges at the player if it sees it"""
+    """An enemy that charges at players if it sees it"""
 
     # Modifiable Numbers
     length = VelocityCalculator.give_measurement(screen_length, 20)
@@ -18,11 +18,11 @@ class ChargingBull(Enemy):
     acceleration_path = None
     current_velocity = 0
 
-    def __init__(self, damage, hit_points, platform, player):
+    def __init__(self, damage, hit_points, platform, players, is_gone):
         """Initializes the object"""
 
-        super().__init__(damage, hit_points, platform, player, platform.right_edge - self.length,
-                         platform.y_coordinate - self.height, self.length, self.height)
+        super().__init__(damage, hit_points, platform, players, platform.right_edge - self.length,
+                         platform.y_coordinate - self.height, self.length, self.height, is_gone)
 
         self.acceleration_path = PhysicsPath()
         self.acceleration_path.set_acceleration(self.time_to_get_to_max_velocity, self.max_velocity)
@@ -31,11 +31,12 @@ class ChargingBull(Enemy):
     def run(self):
         """Runs all the code for the charging bull"""
 
-        distance = self.x_coordinate - self.player.right_edge
-        distance_needed = VelocityCalculator.give_measurement(screen_length, 45)
-        should_charge = distance <= distance_needed and CollisionsFinder.is_height_collision(self.player, self)
+        for player in self.players:
+            distance = self.x_coordinate - player.right_edge
+            distance_needed = VelocityCalculator.give_measurement(screen_length, 45)
+            should_charge = distance <= distance_needed and CollisionsFinder.is_height_collision(player, self)
 
-        GameMovement.run_acceleration(self, should_charge, self.acceleration_path)
+            GameMovement.run_acceleration(self, should_charge, self.acceleration_path)
 
         charging_bull_distance = VelocityCalculator.calc_distance(self.current_velocity)
         self.x_coordinate += charging_bull_distance if self.is_moving_right else -charging_bull_distance
@@ -62,3 +63,5 @@ class ChargingBull(Enemy):
 
     def hit_by_player(self, player_weapon, index_of_sub_component):
         pass
+
+

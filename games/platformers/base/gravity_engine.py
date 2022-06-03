@@ -18,11 +18,12 @@ class GravityEngine:
         """Runs all the gravity code"""
 
         for game_object in self.game_object_to_physics_path.keys():
-            physics_path: PhysicsPath = self.game_object_to_physics_path[game_object]
+            if not game_object.is_on_platform:
+                physics_path: PhysicsPath = self.game_object_to_physics_path[game_object]
 
-            physics_path.run(game_object.is_on_platform, not game_object.is_on_platform)
+                physics_path.run(game_object.is_on_platform, not game_object.is_on_platform)
 
-            game_object.y_coordinate += physics_path.get_gravity_distance_from_acceleration()
+                game_object.y_coordinate += physics_path.get_gravity_distance_from_acceleration()
 
     def reset(self):
         """Resets everything back to the start of the game"""

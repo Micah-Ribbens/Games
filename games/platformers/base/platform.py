@@ -6,10 +6,12 @@ from base.important_variables import (
 
 from base.velocity_calculator import VelocityCalculator
 
+
 class Platform(GameObject):
-    """The platform that the player can jump onto and interact with"""
+    """The platform that the players can jump onto and interact with"""
 
     color = (150, 75, 0)
+    object_type = "Platform"
 
     def __init__(self, x_coordinate=0, y_coordinate=0, length=0, height=0, has_supplied_values=False):
         """Initializes the object"""

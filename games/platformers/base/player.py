@@ -2,6 +2,7 @@ from math import sqrt
 
 from base.colors import red, light_gray, white
 from base.drawable_objects import Segment
+from base.engines import CollisionsFinder
 from base.events import Event, TimedEvent
 from base.game_movement import GameMovement
 
@@ -23,6 +24,9 @@ class Player(WeaponUser):
     base_x_coordinate = 100
     max_velocity = VelocityCalculator.give_velocity(screen_length, 700)
     time_to_get_to_max_velocity = .3
+    total_hit_points = 20
+    hit_points_left = total_hit_points
+    object_type = "Player"
 
     # Miscellaneous
     jumping_path = None
@@ -35,7 +39,8 @@ class Player(WeaponUser):
     current_velocity = 0
     normal_upwards_velocity = 0
     paths_and_events = None
-    hit_points = 20
+    gravity_engine = None
+    invincibility_event = None
 
     # Booleans
     can_move_down = True
@@ -51,7 +56,7 @@ class Player(WeaponUser):
     down_key = None
     attack_key = None
 
-    def __init__(self, left_key, right_key, jump_key, down_key, attack_key):
+    def __init__(self, left_key, right_key, jump_key, down_key, attack_key, is_gone):
         """Initializes the object"""
 
         self.left_key, self.right_key, self.jump_key = left_key, right_key, jump_key
@@ -70,7 +75,8 @@ class Player(WeaponUser):
 
         self.jumping_event, self.right_event, self.left_event = Event(), Event(), Event()
 
-        self.weapon = BouncyProjectileThrower(lambda: key_is_hit(self.attack_key), self)
+        self.weapon = BouncyProjectileThrower(lambda: key_is_hit(self.attack_key), self, is_gone)
+        self.invincibility_event = TimedEvent(1, False)
         self.paths_and_events = [self.jumping_path, self.deceleration_path, self.acceleration_path]
 
     def run(self):
@@ -80,8 +86,12 @@ class Player(WeaponUser):
         self.jumping_event.run(key_is_hit(self.jump_key))
         self.right_event.run(key_is_hit(self.right_key))
         self.left_event.run(key_is_hit(self.left_key))
-
         self.jumping_path.run(False, self.jumping_event.is_click())
+        self.sub_components = [self] + self.weapon.get_sub_components()
+        self.invincibility_event.run(self.invincibility_event.current_time > self.invincibility_event.time_needed, False)
+
+        if self.y_coordinate <= 0:
+            self.run_bottom_collision(0)
 
         if self.right_event.has_stopped() or self.left_event.has_stopped():
             self.decelerate_player(self.right_event.has_stopped())
@@ -122,9 +132,13 @@ class Player(WeaponUser):
         self.y_coordinate = self.base_y_coordinate
         self.is_on_platform = True
         self.jumping_path.initial_velocity = self.normal_upwards_velocity
+        self.hit_points_left = self.total_hit_points
+        self.invincibility_event.reset()
 
         for path_or_event in self.paths_and_events:
             path_or_event.reset()
+
+        self.weapon.reset()
 
     def set_y_coordinate(self, y_coordinate):
         """Sets the y coordinate of the player"""
@@ -194,6 +208,57 @@ class Player(WeaponUser):
 
         return return_value
 
+    # Collision Stuff
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
+        """Runs what should happen when the player collides with an inanimate object"""
+
+        if index_of_sub_component == self.index_of_user:
+            self.update_platform_collision_data(inanimate_object)
+
+        if index_of_sub_component != self.index_of_user:
+            self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component - self.weapon_index_offset)
+
+    def run_collisions(self):
+        """Runs what should happen based on what got stored in the collision data"""
+
+        self.alter_player_horizontal_movement()
+        self.alter_player_vertical_movement()
+
+    def alter_player_horizontal_movement(self):
+        """Alters the player's horizontal movement so it stays within the screen and is not touching the platforms"""
+
+        player_is_beyond_screen_left = self.x_coordinate <= 0
+        player_is_beyond_screen_right = self.right_edge >= screen_length
+
+        self.can_move_left = not self.right_collision_data[0] and not player_is_beyond_screen_left
+        self.can_move_right = not self.left_collision_data[0] and not player_is_beyond_screen_right
+
+        # Setting the player's x coordinate if the any of the above conditions were met (collided with platform or beyond screen)
+        function = self.set_x_coordinate
+        self.change_attribute_if(player_is_beyond_screen_left, function, 0)
+        self.change_attribute_if(player_is_beyond_screen_right, function, screen_length - self.length)
+
+        if self.right_collision_data[0]:
+            function(self.right_collision_data[1].right_edge)
+
+        if self.left_collision_data[0]:
+            function(self.left_collision_data[1].x_coordinate - self.length)
+
+    def alter_player_vertical_movement(self):
+        """Alters the player's vertical movement so it can't go through platforms"""
+
+        player_is_on_platform = self.top_collision_data[0]
+
+        if player_is_on_platform:
+            self.set_y_coordinate(self.top_collision_data[1].y_coordinate - self.height)
+            self.gravity_engine.game_object_to_physics_path[self].reset()
+
+        self.set_is_on_platform(player_is_on_platform)
+
+        if self.bottom_collision_data[0]:
+            self.gravity_engine.game_object_to_physics_path[self].reset()
+            self.run_bottom_collision(self.bottom_collision_data[1].bottom)
+
     def render(self):
         """Renders the object onto the screen"""
 
@@ -223,9 +288,23 @@ class Player(WeaponUser):
 
         self.draw_in_segments([eye1, eye2, mouth])
 
+    @property
+    def is_beyond_screen_left(self):
+        self.x_coordinate <= 0
 
+    @property
+    def is_beyond_screen_right(self):
+        self.right_edge >= screen_length
 
+    def change_attribute_if(self, condition, function, value):
+        """Changes the attribute to the value if 'condition()' is True"""
 
+        if condition:
+            function(value)
 
+    def cause_damage(self, amount):
+        """Damages the player by that amount and also starts the player's invincibility"""
 
-
+        if self.invincibility_event.has_finished():
+            self.hit_points_left -= amount
+            self.invincibility_event.start()

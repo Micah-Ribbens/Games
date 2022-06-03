@@ -8,10 +8,10 @@ class BouncyProjectile(Projectile):
 
     projectile_path = None
 
-    def __init__(self, x_coordinate, y_coordinate, is_moving_right, projectile_height, player_velocity):
+    def __init__(self, x_coordinate, y_coordinate, is_moving_right, projectile_height, user_velocity, object_type, total_hit_points, user):
         """Initializes the object"""
 
-        super().__init__(x_coordinate, y_coordinate, is_moving_right, player_velocity)
+        super().__init__(x_coordinate, y_coordinate, is_moving_right, user_velocity, object_type, total_hit_points, user)
         time_to_vertex = .2
         self.projectile_path = PhysicsPath(game_object=self, attribute_modifying="y_coordinate", height_of_path=-projectile_height, initial_distance=y_coordinate - self.height, time=time_to_vertex)
         self.projectile_path.set_initial_distance(y_coordinate - self.height)
@@ -40,6 +40,12 @@ class BouncyProjectileThrower(ProjectileThrower):
     def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
         """Runs all the code for figuring ot what to do when one of the projectiles hits an inanimate object (platforms, trees, etc.)"""
 
+        # No idea why this sometimes happens but sometimes there is a collision for a projectile that doesn't exist
+        # So this must return if that happens otherwise the game crashes
+        if index_of_sub_component >= len(self.sub_components):
+            print("WEIRD COLLISION WHEN THERE WASN'T AN OBJECT GLITCH")
+            return
+
         projectile: BouncyProjectile = self.sub_components[index_of_sub_component]
 
         if CollisionsFinder.is_top_collision(projectile, inanimate_object, True):
@@ -48,10 +54,11 @@ class BouncyProjectileThrower(ProjectileThrower):
         else:
             super().run_inanimate_object_collision(inanimate_object, index_of_sub_component)
 
+
     def run_upon_activation(self):
         """Runs the code that should be completed when the code decides to use this weapon"""
 
-        self.sub_components.append(BouncyProjectile(self.get_weapon_x_coordinate(Projectile.size, self.player.should_shoot_right),
-                                                    self.player.projectile_y_coordinate, self.player.should_shoot_right,
-                                                    self.player.projectile_height, self.player.projectile_velocity))
+        self.sub_components.append(BouncyProjectile(self.get_weapon_x_coordinate(Projectile.size, self.user.should_shoot_right),
+                                                    self.user.projectile_y_coordinate, self.user.should_shoot_right,
+                                                    self.user.projectile_height, self.user.projectile_velocity, self.object_type, self.total_hit_points, self.user))
 

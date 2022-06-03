@@ -308,7 +308,8 @@ class CollisionsUtilityFunctions:
         velocity = total_distance / VelocityCalculator.time
 
         time = distance_to_point / velocity
-        return time if time <= VelocityCalculator.time else -1
+        # Multiplying by 1.1 for a little bit of a time buffer, so it doesn't discard an actual collision
+        return time if time <= VelocityCalculator.time * 1.1 else -1
 
     def get_line_collision_point(line1, line2):
         """returns: Point; the point at which line1 and line2 collide (None if they don't collide)"""

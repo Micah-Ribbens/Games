@@ -14,11 +14,12 @@ class StraightNinja(Enemy):
     height = VelocityCalculator.give_measurement(screen_height, 10)
     weapon = None
     is_facing_right = None
+    is_gone = None
 
-    def __init__(self, damage, hit_points, platform, player):
+    def __init__(self, damage, hit_points, platform, players, is_gone):
         """Initializes the object"""
 
-        super().__init__(damage, hit_points, platform, player, 0, 0, self.length, self.height)
+        super().__init__(damage, hit_points, platform, players, 0, 0, self.length, self.height, is_gone)
 
         y_coordinate = platform.y_coordinate - self.height
         wait_time = .5
@@ -30,7 +31,7 @@ class StraightNinja(Enemy):
         self.path.add_point(Point(platform.right_edge - self.length, y_coordinate), self.shoot_star, wait_time)
 
         self.path.is_unending = True
-        self.weapon = ProjectileThrower(lambda: False, self)
+        self.weapon = ProjectileThrower(lambda: False, self, is_gone)
 
     def hit_player(self, player, index_of_sub_component):
         pass
@@ -42,6 +43,7 @@ class StraightNinja(Enemy):
         """Runs everything necessary in order for this enemy to work"""
 
         self.sub_components = [self] + self.weapon.get_sub_components()
+        self.components = self.sub_components + [self.health_bar]
         self.path.run()
         self.weapon.run()
 
@@ -51,17 +53,12 @@ class StraightNinja(Enemy):
         # Casting to int prevents a rounding error (off by .000000001 or less)
         self.is_facing_right = int(self.x_coordinate) == int(self.platform.x_coordinate)
 
-        # Sometimes there is a bad lag spike, so the enemy won't stop meaning then I have to check if the player
+        # Sometimes there is a bad lag spike, so the enemy won't stop meaning then I have to check if the enemy
         # Is now moving right (slope of the x coordinate line is increasing means the x coordinates are increasing)
         if int(self.x_coordinate) != int(self.platform.x_coordinate) and int(self.right_edge) != int(self.platform.right_edge):
             self.is_facing_right = self.path.x_coordinate_lines[self.path.get_index_of_line(self.path.total_time)].slope_is_positive()
 
         self.weapon.run_upon_activation()
-
-    def get_sub_components(self):
-        """returns: Component[]; all the components that should be rendered and ran"""
-
-        return [self] + self.weapon.get_sub_components()
 
     @property
     def projectile_velocity(self):

@@ -77,7 +77,9 @@ class TextBox(ClickableComponent):
         one_letter = one_letter_text.get_rect()
         self.font_ch_length = one_letter.width
         self.font_ch_height = one_letter.height
-        self.initialize_keys()
+
+        if self.is_editable:
+            self.initialize_keys()
 
     def set_font(self, font_size):
         """ summary: changes the text box's font

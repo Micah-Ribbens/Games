@@ -148,9 +148,8 @@ class CollisionsFinder:
 
             # If they started out touching then it was not a moving collision; they were already collided beforehand
             if CollisionsFinder.objects_are_touching(prev_object1, prev_object2):
+                is_moving_collision = False
                 collision_time = -1
-
-            is_moving_collision = collision_time != -1
 
         if CollisionsFinder.objects_are_touching(object1, object2):
             # The last case where neither object has moved and is checking if the objects are touching each other
@@ -165,10 +164,10 @@ class CollisionsFinder:
     def objects_are_touching(object1, object2):
         """returns: booolean; if the objects are touching"""
 
-        objects_were_touching_horizontally = (object1.x_coordinate == object2.right_edge or
-                                              object2.x_coordinate == object1.right_edge) and CollisionsFinder.is_height_collision(object1, object2)
-        objects_were_touching_vertically = (object1.y_coordinate == object2.bottom or
-                                            object2.y_coordinate == object1.bottom) and CollisionsFinder.is_length_collision(object1, object2)
+        objects_were_touching_horizontally = (rounded(object1.x_coordinate, 7) == rounded(object2.right_edge, 7) or
+                                              rounded(object2.x_coordinate, 7) == rounded(object1.right_edge, 7)) and CollisionsFinder.is_height_collision(object1, object2)
+        objects_were_touching_vertically = (rounded(object1.y_coordinate, 7) == rounded(object2.bottom, 7) or
+                                            object2.y_coordinate == rounded(object1.bottom, 7)) and CollisionsFinder.is_length_collision(object1, object2)
 
         return objects_were_touching_horizontally or objects_were_touching_vertically
 
@@ -199,7 +198,9 @@ class CollisionsFinder:
         return (object1.x_coordinate <= object2.right_edge and
                 object1.right_edge >= object2.x_coordinate)
 
-    def sim_collision(object1, object2):
+    def is_simple_collision(object1, object2):
+        """returns: boolean; if it is a simple collision --> does not check what happened in the past (just this frame)"""
+
         return CollisionsFinder.is_height_collision(object1, object2) and CollisionsFinder.is_length_collision(object1, object2)
 
     def is_a_bottom_collision(object1, object2, is_collision=None):

@@ -11,6 +11,7 @@ class Component(ABC, Dimensions):
     is_visible = True
     is_runnable = True
     is_selected = False
+    is_addable = True
 
     @abstractmethod
     def run(self):

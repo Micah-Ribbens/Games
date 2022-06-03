@@ -11,7 +11,8 @@ class GameObject(Component):
     color = (0, 0, 250)
     name = ""
     attributes = ["x_coordinate", "y_coordinate"]
-    
+    object_type = ""
+
     def __init__(self, x_coordinate=0, y_coordinate=0, height=0, length=0, color=(0, 0, 0)):
         """summary: Initializes the object with the numbers (int) and color (RGB tuple) provided
 
