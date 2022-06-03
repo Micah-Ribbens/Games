@@ -6,6 +6,7 @@ from games.platformers.base.platform import Platform
 from games.platformers.base.player import Player
 from games.platformers.enemies.charging_bull import ChargingBull
 from games.platformers.enemies.straight_ninja import StraightNinja
+from games.platformers.enemies.bouncy_ninja import BouncyNinja
 from gui_components.grid import Grid
 from gui_components.health_bar import HealthBar
 from gui_components.screen import Screen
@@ -54,7 +55,7 @@ class PlatformerScreen(Screen):
         # Sandwich Platform
         self.platforms = [Platform(100, 300, 800, 100, True), Platform(0, 200, 100, 100, True), Platform(910, 200, 100, 100, True)]
 
-        self.enemies = [ChargingBull(10, 20, self.platforms[0], self.players, self.is_gone)]
+        self.enemies = [BouncyNinja(10, 20, self.platforms[0], self.players, self.is_gone)]
 
     def run(self):
         """Runs all the code necessary in order for the platformer to work"""

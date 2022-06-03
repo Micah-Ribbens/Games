@@ -15,7 +15,6 @@ class Enemy(WeaponUser, abc.ABC):
     damage = 10
     health_bar = None
     object_type = "Enemy"
-    is_gone = None
 
     def __init__(self, damage, hit_points, platform, players, x_coordinate, y_coordinate, length, height, is_gone):
         """Initializes the object"""
@@ -27,7 +26,6 @@ class Enemy(WeaponUser, abc.ABC):
         self.health_bar = HealthBar(self)
         self.sub_components = [self]
         self.components = [self, self.health_bar]
-        self.is_gone = is_gone
 
     @abc.abstractmethod
     def run(self):
@@ -47,6 +45,6 @@ class Enemy(WeaponUser, abc.ABC):
         """Runs what should happen if the enemy or something the player threw hit an inanimate object"""
 
         if index_of_sub_component != self.index_of_user:
-            self.run_inanimate_object_collision(inanimate_object, index_of_sub_component - self.weapon_index_offset)
+            self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component - self.weapon_index_offset)
 
 

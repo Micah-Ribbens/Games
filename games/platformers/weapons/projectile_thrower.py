@@ -60,7 +60,7 @@ class ProjectileThrower(Weapon):
 
             if not self.is_gone(projectile) and not self.deleted_sub_components_indexes.__contains__(x):
                 projectile.run()
-                projectile.index = x + self.user.weapon_index_offset
+                projectile.index = len(updated_sub_components) + self.user.weapon_index_offset
                 updated_sub_components.append(projectile)
 
         self.sub_components = updated_sub_components

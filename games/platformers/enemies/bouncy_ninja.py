@@ -9,7 +9,7 @@ class BouncyNinja(StraightNinja):
         """Initializes the object"""
 
         super().__init__(damage, hit_points, platform, players, is_gone)
-        self.weapon = BouncyProjectileThrower(lambda: False, self)
+        self.weapon = BouncyProjectileThrower(lambda: False, self, is_gone)
 
     @property
     def projectile_height(self):
