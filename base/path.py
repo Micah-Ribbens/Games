@@ -237,6 +237,7 @@ class VelocityPath(Path):
         self.path_lines = []
         self.x_coordinate_lines = []
         self.y_coordinate_lines = []
+        self.times = []
 
         self.last_point = start_point
 
@@ -542,6 +543,7 @@ class ActionPath(VelocityPath):
 
         super().__init__(start_point, [], velocity)
         self.object_on_path = object_on_path
+        self.actions = []
 
     def add_point(self, point, action, additional_time=None):
         """Adds the point ot the action path"""

@@ -86,9 +86,13 @@ class Player(WeaponUser):
         self.jumping_event.run(key_is_hit(self.jump_key))
         self.right_event.run(key_is_hit(self.right_key))
         self.left_event.run(key_is_hit(self.left_key))
-        self.jumping_path.run(False, self.jumping_event.is_click())
+        self.jumping_path.run(False, False)
         self.sub_components = [self] + self.weapon.get_sub_components()
         self.invincibility_event.run(self.invincibility_event.current_time > self.invincibility_event.time_needed, False)
+
+        if self.jumping_path.has_finished() and self.jumping_event.is_click():
+            self.jumping_path.start()
+            self.gravity_engine.game_object_to_physics_path[self].reset()
 
         if self.y_coordinate <= 0:
             self.run_bottom_collision(0)
@@ -302,6 +306,7 @@ class Player(WeaponUser):
         if condition:
             function(value)
 
+    # TODO change me back
     def cause_damage(self, amount):
         """Damages the player by that amount and also starts the player's invincibility"""
 

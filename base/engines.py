@@ -123,8 +123,8 @@ class CollisionsFinder:
             CollisionsFinder.make_dimensions_match(prev_object2, object2)
             object1_has_moved = CollisionsFinder.object_has_moved(prev_object1, object1)
             object2_has_moved = CollisionsFinder.object_has_moved(prev_object2, object2)
-        # if CollisionsFinder.objects_to_data.__contains__(f"{id(object1)} {id(object2)}"):
-        #     return
+        if CollisionsFinder.objects_to_data.__contains__(f"{id(object1)} {id(object2)}"):
+            return
 
 
         object1_path = ObjectPath(prev_object1, object1)

@@ -56,7 +56,10 @@ class PlatformerScreen(Screen):
         # Sandwich Platform
         self.platforms = [Platform(100, 300, 800, 100, True), Platform(0, 200, 100, 100, True), Platform(910, 200, 100, 100, True)]
 
-        self.enemies = [BouncyNinja(10, 20, self.platforms[0], self.players, self.is_gone)]
+        # One Medium Platform
+        # self.platforms = [Platform(100, 300, 800, 100, True)]
+
+        self.enemies = [BouncyNinja(10, 20, self.platforms[0], self.players, self.is_gone), BouncyNinja(10, 20, self.platforms[2], self.players, self.is_gone)]
 
     def run(self):
         """Runs all the code necessary in order for the platformer to work"""
@@ -184,12 +187,11 @@ class PlatformerScreen(Screen):
     def get_components(self):
         """returns: Component[]; all the components that should be rendered"""
 
-        if len(self.enemies) != 0:
-            return self.player_health_bars + self.platforms + self.players[0].get_sub_components() + self.enemies[0].get_components()
+        components = []
+        for game_object in self.players + self.enemies:
+            components += game_object.get_sub_components()
 
-        else:
-            return self.player_health_bars + self.platforms + self.players[0].get_sub_components()
-
+        return components + self.player_health_bars + self.platforms
 
     def within_screen(self, game_object):
         """returns: boolean; if the game_object is within the screen (can be seen on the screen)"""

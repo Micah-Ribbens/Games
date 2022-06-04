@@ -43,6 +43,7 @@ class StraightNinja(Enemy):
         """Runs everything necessary in order for this enemy to work"""
 
         self.sub_components = [self] + self.weapon.get_sub_components()
+
         self.components = self.sub_components + [self.health_bar]
         self.path.run()
         self.weapon.run()

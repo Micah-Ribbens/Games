@@ -29,6 +29,8 @@ class CollisionData:
 
 
 class CollisionsUtilityFunctions:
+    point_deviation_allowed = pow(10, -7) # The amount a suggested collision point and a point on the actual line can deviate
+
     def get_object_xy(current_object, prev_object, time):
         """returns: Point; the object's x and y at that time"""
 
@@ -281,7 +283,7 @@ class CollisionsUtilityFunctions:
             for y_coordinate in ellipse.get_y_coordinate_min_and_max(x_coordinate):
                 point = Point(x_coordinate, y_coordinate)
 
-                if line.contains_point(point, 1):
+                if line.contains_point(point, CollisionsUtilityFunctions.point_deviation_allowed):
                     collision_points.append(point)
 
         return collision_points
@@ -291,16 +293,6 @@ class CollisionsUtilityFunctions:
 
         collision_points = CollisionsUtilityFunctions.get_line_ellipse_collision_points(line, ellipse)
         return CollisionsUtilityFunctions.get_smallest_time(line, moving_object_path, collision_points)
-
-    def lines_contain_point(lines, point, amount_can_be_off_by):
-        """returns: boolean; if all the lines contain the point (or are off by <= amount_can_be_off_by)"""
-
-        return_value = True
-
-        for line in lines:
-            if not line.contains_point(point, amount_can_be_off_by):
-                return_value = False
-        return return_value
 
     def get_time_to_point(distance_to_point, total_distance):
         """returns: double; the time it would take to reach that point and it returns -1 if the time it would take is
@@ -331,7 +323,8 @@ class CollisionsUtilityFunctions:
             collision_point = Point(x_collision_point, line1.get_y_coordinate(x_collision_point))
 
         # If one of the line segments doesn't contain that collision point then the lines couldn't have collided
-        if not line1.contains_point(collision_point, 1) or not line2.contains_point(collision_point, 1):
+        point_deviation_allowed = CollisionsUtilityFunctions.point_deviation_allowed
+        if not line1.contains_point(collision_point, point_deviation_allowed) or not line2.contains_point(collision_point, point_deviation_allowed):
             collision_point = None
 
         return collision_point

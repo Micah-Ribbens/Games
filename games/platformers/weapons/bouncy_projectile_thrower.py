@@ -43,7 +43,6 @@ class BouncyProjectileThrower(ProjectileThrower):
         # No idea why this sometimes happens but sometimes there is a collision for a projectile that doesn't exist
         # So this must return if that happens otherwise the game crashes
         if index_of_sub_component >= len(self.sub_components):
-            print("WEIRD COLLISION WHEN THERE WASN'T AN OBJECT GLITCH")
             return
 
         projectile: BouncyProjectile = self.sub_components[index_of_sub_component]
@@ -54,11 +53,11 @@ class BouncyProjectileThrower(ProjectileThrower):
         else:
             super().run_inanimate_object_collision(inanimate_object, index_of_sub_component)
 
-
     def run_upon_activation(self):
         """Runs the code that should be completed when the code decides to use this weapon"""
 
         self.sub_components.append(BouncyProjectile(self.get_weapon_x_coordinate(Projectile.size, self.user.should_shoot_right),
                                                     self.user.projectile_y_coordinate, self.user.should_shoot_right,
                                                     self.user.projectile_height, self.user.projectile_velocity, self.object_type, self.total_hit_points, self.user))
+
 

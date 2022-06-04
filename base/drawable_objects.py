@@ -179,6 +179,14 @@ class Ellipse(GameObject):
         # Equation now looks like (y - k)^2 = (1 - (x - h)^2 / a^2) * b^2
         right_side *= pow(b, 2)
 
+        # So there is not a rounding error where the number is something like 1E-8 causing an imaginary number error
+        rounded(right_side, 7)
+
+        # Should not happen, but if it does the game should not crash
+        if right_side < 0:
+            return [0, 0]
+
+
         # Since a sqrt can either be positive or negative you have to do +-
         y_min = sqrt(right_side) + k
         y_max = -sqrt(right_side) + k
