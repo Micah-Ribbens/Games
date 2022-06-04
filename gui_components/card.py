@@ -1,6 +1,6 @@
 from base.colors import red
 from base.drawable_objects import GameObject
-from base.utility_functions import render_words
+from base.gui_utility_functions import render_words
 from gui_components.text_box import TextBox
 
 

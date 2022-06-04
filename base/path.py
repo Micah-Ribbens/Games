@@ -237,6 +237,7 @@ class VelocityPath(Path):
         self.path_lines = []
         self.x_coordinate_lines = []
         self.y_coordinate_lines = []
+        self.times = []
 
         self.last_point = start_point
 
@@ -285,22 +286,27 @@ class VelocityPath(Path):
         return self._get_coordinates(self.total_time)
 
     def _get_coordinates(self, time):
-        # By default it starts out as the end of the path and if the time falls within the path uses those coordinates
-        last_index = len(self.x_coordinate_lines) - 1
-        end_x_coordinate = self.x_coordinate_lines[last_index].end_point.y_coordinate
-        end_y_coordinate = self.y_coordinate_lines[last_index].end_point.y_coordinate
-        coordinates = [end_x_coordinate, end_y_coordinate]
+        """returns: double; the coordinates at that time"""
+
+        index = self.get_index_of_line(time)
+        x_coordinate_line = self.x_coordinate_lines[index]
+        y_coordinate_line = self.y_coordinate_lines[index]
+        return [x_coordinate_line.get_y_coordinate(time), y_coordinate_line.get_y_coordinate(time)]
+
+    def get_index_of_line(self, time):
+        """returns: int; the index of the line that the path is currently on"""
+
+        return_value = len(self.x_coordinate_lines) - 1
 
         for x in range(len(self.y_coordinate_lines)):
             y_coordinate_line: LineSegment = self.y_coordinate_lines[x]
-            x_coordinate_line: LineSegment = self.x_coordinate_lines[x]
             start_point = y_coordinate_line.start_point
             end_point = y_coordinate_line.end_point
 
             if time >= start_point.x_coordinate and time <= end_point.x_coordinate:
-                coordinates = [x_coordinate_line.get_y_coordinate(time), y_coordinate_line.get_y_coordinate(time)]
+                return_value = x
 
-        return coordinates
+        return return_value
 
     def set_time(self, time):
         """Sets the time to the provided 'time'- if it is greater than the max time it is reduced to a smaller time"""
@@ -332,7 +338,6 @@ class VelocityPath(Path):
         for x in range(len(times)):
             path_line: PathLine = path.path_lines[x].y_coordinate_line
 
-            # TODO figure out if this is sound logic :)
             VelocityPath.add_point_to_paths(paths, elapsed_times[x], path_line.start_point, path.length, path.height)
 
         last_path_line = path.path_lines[len(path.path_lines) - 1].y_coordinate_line
@@ -432,19 +437,6 @@ class VelocityPath(Path):
         paths[3].add_point(Point(current_time, point.y_coordinate + height))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 class ObjectPath(Path):
     """A Path that is specifically for tracking an object from one point to another"""
 
@@ -536,6 +528,44 @@ class ObjectPath(Path):
         """returns: PathLine; the only path_line since it is an object path"""
 
         return self.path_lines[0].y_coordinate_line
+
+
+class ActionPath(VelocityPath):
+    """A path that performs an action at each of the points"""
+
+    actions = []
+    is_unending = True
+    index_of_last_line = None
+    object_on_path = None
+
+    def __init__(self, start_point, object_on_path, velocity):
+        """Initializes the object"""
+
+        super().__init__(start_point, [], velocity)
+        self.object_on_path = object_on_path
+        self.actions = []
+
+    def add_point(self, point, action, additional_time=None):
+        """Adds the point ot the action path"""
+
+        if additional_time is None:
+            super().add_point(point)
+
+        if additional_time is not None:
+            super().add_time_point(point, self.last_end_time + additional_time)
+
+        self.actions.append(action)
+
+    def run(self):
+        """Runs all the code for the action path"""
+
+        new_index = self.get_index_of_line(self.total_time % self.max_time)
+
+        if new_index != self.index_of_last_line:
+            self.index_of_last_line = new_index
+            self.actions[new_index]()
+
+        self.object_on_path.x_coordinate, self.object_on_path.y_coordinate = self.get_coordinates()
 
 
 

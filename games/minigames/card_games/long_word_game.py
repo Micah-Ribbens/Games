@@ -1,10 +1,8 @@
 import random
 from copy import deepcopy
-import pygame
-
+from base.important_variables import *
 from base.colors import *
 from base.dimensions import Dimensions
-from base.important_variables import screen_height, screen_length
 from base.utility_functions import get_index_of_range, get_uppercase
 from base.velocity_calculator import VelocityCalculator
 from gui_components.button import Button

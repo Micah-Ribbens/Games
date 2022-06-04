@@ -1,10 +1,7 @@
 from pygame import mixer
-import pygame
 from base.velocity_calculator import VelocityCalculator
 
 mixer.init()
-pygame.init()
-
 
 class SoundEffect:
     """A class for playing sound effects"""

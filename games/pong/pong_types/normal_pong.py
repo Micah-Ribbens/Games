@@ -3,7 +3,6 @@ from base.velocity_calculator import VelocityCalculator
 from base.engines import CollisionsFinder
 from games.pong.pong_types.pong_type import PongType
 from games.pong.base_pong.players import Paddle, AI
-import pygame
 
 
 class NormalPong(PongType):
@@ -22,11 +21,11 @@ class NormalPong(PongType):
 
         self.ball_screen_boundary_collisions(ball)
 
-        if CollisionsFinder.is_right_collision(ball, player2):
-            CollisionsFinder.is_right_collision(ball, player2)
+        if CollisionsFinder.is_moving_right_collision(ball, player2):
+            CollisionsFinder.is_moving_right_collision(ball, player2)
 
-        if CollisionsFinder.is_left_collision(ball, player1):
-            CollisionsFinder.is_left_collision(ball, player1)
+        if CollisionsFinder.is_moving_left_collision(ball, player1):
+            CollisionsFinder.is_moving_left_collision(ball, player1)
 
         if CollisionsFinder.is_collision(player1, ball):
             self.paddle_collisions(ball, player1)
@@ -51,14 +50,14 @@ class NormalPong(PongType):
 
             returns: None
         """
-        if not CollisionsFinder.is_right_collision(ball, paddle) and not CollisionsFinder.is_left_collision(ball, paddle):
+        if not CollisionsFinder.is_moving_right_collision(ball, paddle) and not CollisionsFinder.is_moving_left_collision(ball, paddle):
             CollisionsFinder.is_collision(ball, paddle)
 
-        if CollisionsFinder.is_right_collision(ball, paddle):
+        if CollisionsFinder.is_moving_right_collision(ball, paddle):
             ball.x_coordinate = paddle.right_edge
             ball.is_moving_right = True
 
-        elif CollisionsFinder.is_left_collision(ball, paddle):
+        elif CollisionsFinder.is_moving_left_collision(ball, paddle):
             ball.x_coordinate = paddle.x_coordinate - ball.length
             ball.is_moving_right = False
 

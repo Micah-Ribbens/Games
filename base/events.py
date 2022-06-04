@@ -47,6 +47,11 @@ class Event:
 
         return self.current_event and not self.happened_last_cycle()
 
+    def has_stopped(self):
+        """returns: boolean; if the event was True last cycle and is not True this cycle"""
+
+        return self.happened_last_cycle() and not self.current_event
+
 
 class TimedEvent:
     """Used for events that are completed within a certain time frame"""
@@ -124,9 +129,9 @@ class TimedEvent:
         self.current_time = 0
 
     def has_finished(self):
-        """returns: boolean; if the event has started but has not finished"""
+        """returns: boolean; if the event has either not started or is done"""
 
-        return not (self.is_started and not self.is_done())
+        return not self.is_started or self.is_done()
 
 
 class TimedRange:

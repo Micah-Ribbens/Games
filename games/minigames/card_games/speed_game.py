@@ -1,9 +1,8 @@
 import random
-import pygame
 
 from base.colors import *
 from base.dimensions import Dimensions
-from base.important_variables import screen_height, screen_length
+from base.important_variables import *
 from base.sound_effect import SoundEffect
 from base.velocity_calculator import VelocityCalculator
 from gui_components.button import Button

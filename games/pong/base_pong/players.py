@@ -5,7 +5,8 @@ from base.equations import Point
 from base.game_movement import GameMovement
 from base.important_variables import *
 from base.path import Path, VelocityPath
-from base.utility_classes import Fraction, HistoryKeeper
+from base.utility_classes import HistoryKeeper
+from base.fraction import Fraction
 from base.utility_functions import is_random_chance
 from base.velocity_calculator import VelocityCalculator
 from games.pong.pong_types.pong_type import PongType

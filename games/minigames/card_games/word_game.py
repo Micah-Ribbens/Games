@@ -1,9 +1,7 @@
-import pygame
-
 from base.colors import *
 from base.dimensions import Dimensions
 from base.events import Event
-from base.important_variables import screen_height, screen_length
+from base.important_variables import *
 from base.utility_functions import string_to_list
 from base.velocity_calculator import VelocityCalculator
 from gui_components.button import Button

@@ -1,13 +1,10 @@
 from copy import deepcopy
-
-import pygame
-
 from base.engine_utility_classes import CollisionsUtilityFunctions
 from base.engines import CollisionsFinder
 from base.equations import Point, LineSegment
 from base.events import Event
 from base.game_movement import GameMovement
-from base.important_variables import screen_height, screen_length
+from base.important_variables import *
 from base.path import VelocityPath, Path, SimplePath
 from games.pong.base_pong.players import Player, AI
 from base.utility_classes import HistoryKeeper, StateChange
@@ -190,23 +187,23 @@ class OmnidirectionalPong(NormalPong):
             returns: None
         """
         if CollisionsFinder.is_moving_collision(self.last_ball, player):
-            HistoryKeeper.add(player, self.player_who_hit_ball_key, True)
+            # HistoryKeeper.add(player, self.player_who_hit_ball_key, True)
             velocity_reduction = .8
             player.velocity = player.base_velocity * velocity_reduction
 
         else:
             player.velocity = player.base_velocity
 
-        if CollisionsFinder.is_right_collision(self.last_ball, player) and not self.ball_is_sandwiched():
+        if CollisionsFinder.is_moving_right_collision(self.last_ball, player) and not self.ball_is_sandwiched():
             self.ball.x_coordinate = player.right_edge
             self.ball.is_moving_right = True
-            HistoryKeeper.add(player, self.player_who_hit_ball_key, True)
+            # HistoryKeeper.add(player, self.player_who_hit_ball_key, True)
 
-        elif CollisionsFinder.is_left_collision(self.last_ball, player) and not self.ball_is_sandwiched():
-            CollisionsFinder.is_left_collision(self.last_ball, player)
+        elif CollisionsFinder.is_moving_left_collision(self.last_ball, player) and not self.ball_is_sandwiched():
+            CollisionsFinder.is_moving_left_collision(self.last_ball, player)
             self.ball.x_coordinate = player.x_coordinate - self.ball.length
             self.ball.is_moving_right = False
-            HistoryKeeper.add(player, self.player_who_hit_ball_key, True)
+            # HistoryKeeper.add(player, self.player_who_hit_ball_key, True)
 
         self.ball_screen_boundary_collisions(self.ball)
 
@@ -337,7 +334,7 @@ class OmnidirectionalPong(NormalPong):
             StateChange(self.ball_is_spawned, self.States.INTERCEPTING_BALL)])
         # INTERCEPTING_BALL
         self.run_state_change(self.States.INTERCEPTING_BALL, [
-            StateChange(CollisionsFinder.is_left_collision(self.player2, self.last_ball), self.States.GOING_TOWARDS_GOAL),
+            StateChange(CollisionsFinder.is_moving_left_collision(self.player2, self.last_ball), self.States.GOING_TOWARDS_GOAL),
             StateChange(not self.can_intercept_object(self.ball.forwards_velocity, self.last_ball), self.States.CENTERING),
             StateChange(CollisionsFinder.is_collision(self.player1, self.last_ball), self.States.INTERCEPTING_PLAYER)
         ])

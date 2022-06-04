@@ -1,16 +1,14 @@
 import random
-import pygame
-
 from base.colors import *
 from base.dimensions import Dimensions
 from base.important_variables import screen_height, screen_length
-from base.utility_functions import get_uppercase, get_sublist, remove_index
+from base.utility_functions import get_uppercase, get_sublist, remove_index, string_to_list
 from base.velocity_calculator import VelocityCalculator
 from gui_components.card import Card
 from gui_components.grid import Grid
 from gui_components.intermediate_screens import IntermediateScreens
 from gui_components.text_box import TextBox
-from base.utility_functions import string_to_list
+from base.important_variables import *
 
 from games.minigames.card_games.word_game import WordGame
 from utillities.animation import Animation

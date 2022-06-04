@@ -18,17 +18,19 @@ class CollisionData:
     """Stores all the data for collisions"""
     is_collision = False
     is_moving_collision = False
-    is_right_collision = False
-    is_left_collision = False
+    is_moving_right_collision = False
+    is_moving_left_collision = False
     object_xy = None
 
-    def __init__(self, is_collision, is_moving_collision, is_right_collision, is_left_collision, object_xy):
+    def __init__(self, is_collision, is_moving_collision, is_moving_right_collision, is_moving_left_collision, object_xy):
         self.is_collision, self.is_moving_collision = is_collision, is_moving_collision
-        self.is_right_collision, self.is_left_collision = is_right_collision, is_left_collision
+        self.is_moving_right_collision, self.is_moving_left_collision = is_moving_right_collision, is_moving_left_collision
         self.object_xy = object_xy
 
 
 class CollisionsUtilityFunctions:
+    point_deviation_allowed = pow(10, -7) # The amount a suggested collision point and a point on the actual line can deviate
+
     def get_object_xy(current_object, prev_object, time):
         """returns: Point; the object's x and y at that time"""
 
@@ -45,7 +47,7 @@ class CollisionsUtilityFunctions:
 
             returns: boolean; if object1 hit/ got hit by object2 from the right
         """
-        is_right_collision = False
+        is_moving_right_collision = False
 
         object1_x_distance_traveled = abs(object1_x_displacement)
         object2_x_distance_traveled = abs(object2_x_displacement)
@@ -53,13 +55,13 @@ class CollisionsUtilityFunctions:
         if object2_x_distance_traveled >= object1_x_distance_traveled:
             # Since object2 traveled a greater distance its displacement matters more (if it goes leftwards into the ball
             # it would be a left collision and if it goes rightwards it would be a right collision)
-            is_right_collision = object2_x_displacement > 0
+            is_moving_right_collision = object2_x_displacement > 0
 
         else:
             # Otherwise, since object1 has traveled the greater distance the direction it goes matters most
-            is_right_collision = object1_x_displacement < 0
+            is_moving_right_collision = object1_x_displacement < 0
 
-        return is_right_collision
+        return is_moving_right_collision
 
     def get_collision_data(object1, object2, collision_time, is_moving_collision):
         """returns: List of CollisionData; [object1 Collision Data, object2 Collision Data]"""
@@ -71,10 +73,10 @@ class CollisionsUtilityFunctions:
         object1_displacement = object1.x_coordinate - prev_object1.x_coordinate
         object2_displacement = object2.x_coordinate - prev_object2.x_coordinate
         object_xy = CollisionsUtilityFunctions.get_object_xy(object1, prev_object1, collision_time)
-        is_right_collision = CollisionsUtilityFunctions.get_is_right_collision(object1_displacement, object2_displacement)
-        is_left_collision = not is_right_collision
+        is_moving_right_collision = CollisionsUtilityFunctions.get_is_right_collision(object1_displacement, object2_displacement)
+        is_moving_left_collision = not is_moving_right_collision
 
-        return CollisionData(is_collision, is_moving_collision, is_right_collision, is_left_collision, object_xy)
+        return CollisionData(is_collision, is_moving_collision, is_moving_right_collision, is_moving_left_collision, object_xy)
 
     def get_path_collision_time(object1_path, object2_path):
         """ summary: finds the time that object1 and object2 collide using their paths
@@ -198,10 +200,13 @@ class CollisionsUtilityFunctions:
         collision_time = float('inf')
         for line in moving_object_path.get_lines():
             time = None
-            if type(stationary_object) == Ellipse:
+            if isinstance(stationary_object, Ellipse):
                 time = CollisionsUtilityFunctions.get_line_ellipse_collision_time(line, stationary_object, moving_object_path)
 
-            # Assumes that if it isn't an ellipse it must be a rectangle
+            elif isinstance(stationary_object, LineSegment):
+                time = CollisionsUtilityFunctions.get_line_collision_time(stationary_object, line, moving_object_path)
+
+            # Assumes that if it isn't any of the above things it must be a rectangle
             else:
                 time = CollisionsUtilityFunctions.get_line_rectangle_collision_time(stationary_object, line, moving_object_path)
 
@@ -222,15 +227,23 @@ class CollisionsUtilityFunctions:
 
         collision_time = float('inf')
         for rectangle_line in rectangle_lines:
-            collision_point = CollisionsUtilityFunctions.get_line_collision_point(rectangle_line, line)
-
-            # TODO times not lining up RIP
-            if collision_point is not None:
-                distance_to_point = get_distance(line.start_point, collision_point)
-                time = CollisionsUtilityFunctions.get_time_to_point(distance_to_point, moving_object_path.get_total_distance())
-                collision_time = time if time < collision_time else collision_time
+            time = CollisionsUtilityFunctions.get_line_collision_time(rectangle_line, line, moving_object_path)
+            collision_time = time if time < collision_time and time != -1 else collision_time
 
         return collision_time if collision_time != float('inf') else -1
+
+    def get_line_collision_time(static_line, moving_object_line, moving_object_path):
+        """returns: double; the time of that the two lines collide"""
+
+        return_value = -1
+        collision_point = CollisionsUtilityFunctions.get_line_collision_point(static_line, moving_object_line)
+
+        if collision_point is not None:
+            distance_to_point = get_distance(moving_object_line.start_point, collision_point)
+            time = CollisionsUtilityFunctions.get_time_to_point(distance_to_point, moving_object_path.get_total_distance())
+            return_value = time
+
+        return return_value
 
     def get_smallest_time(line: LineSegment, moving_object_path: ObjectPath, points):
         """returns: double; the smallest amount of time it would take for the line to go from it starts to a point"""
@@ -270,7 +283,7 @@ class CollisionsUtilityFunctions:
             for y_coordinate in ellipse.get_y_coordinate_min_and_max(x_coordinate):
                 point = Point(x_coordinate, y_coordinate)
 
-                if line.contains_point(point, 1):
+                if line.contains_point(point, CollisionsUtilityFunctions.point_deviation_allowed):
                     collision_points.append(point)
 
         return collision_points
@@ -281,23 +294,14 @@ class CollisionsUtilityFunctions:
         collision_points = CollisionsUtilityFunctions.get_line_ellipse_collision_points(line, ellipse)
         return CollisionsUtilityFunctions.get_smallest_time(line, moving_object_path, collision_points)
 
-    def lines_contain_point(lines, point, amount_can_be_off_by):
-        """returns: boolean; if all the lines contain the point (or are off by <= amount_can_be_off_by)"""
-
-        return_value = True
-
-        for line in lines:
-            if not line.contains_point(point, amount_can_be_off_by):
-                return_value = False
-        return return_value
-
     def get_time_to_point(distance_to_point, total_distance):
         """returns: double; the time it would take to reach that point and it returns -1 if the time it would take is
         greater than VelocityCalculator.time"""
         velocity = total_distance / VelocityCalculator.time
 
         time = distance_to_point / velocity
-        return time if time <= VelocityCalculator.time else -1
+        # Multiplying by 1.1 for a little bit of a time buffer, so it doesn't discard an actual collision
+        return time if time <= VelocityCalculator.time * 1.1 else -1
 
     def get_line_collision_point(line1, line2):
         """returns: Point; the point at which line1 and line2 collide (None if they don't collide)"""
@@ -319,7 +323,8 @@ class CollisionsUtilityFunctions:
             collision_point = Point(x_collision_point, line1.get_y_coordinate(x_collision_point))
 
         # If one of the line segments doesn't contain that collision point then the lines couldn't have collided
-        if not line1.contains_point(collision_point, 1) or not line2.contains_point(collision_point, 1):
+        point_deviation_allowed = CollisionsUtilityFunctions.point_deviation_allowed
+        if not line1.contains_point(collision_point, point_deviation_allowed) or not line2.contains_point(collision_point, point_deviation_allowed):
             collision_point = None
 
         return collision_point

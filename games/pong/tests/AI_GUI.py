@@ -1,4 +1,4 @@
-import pygame
+from base.important_variables import *
 
 from base_pong.ball import Ball
 from base_pong.dimensions import Dimensions

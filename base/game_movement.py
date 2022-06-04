@@ -75,4 +75,14 @@ class GameMovement:
             projectile.y_coordinate = projectile.y_coordinate + distance_change
             projectile.is_moving_down = True
 
+    @staticmethod
+    def run_acceleration(player, should_accelerate, acceleration_path):
+        """Runs the acceleration of the player"""
+
+        acceleration_path.run(False, should_accelerate, True)
+        player.current_velocity = acceleration_path.get_acceleration_displacement()
+
+        if player.current_velocity > player.max_velocity:
+            player.current_velocity = player.max_velocity
+
 

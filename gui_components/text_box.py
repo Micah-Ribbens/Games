@@ -5,14 +5,12 @@ from tkinter import Tk
 from base.events import Event
 from base.utility_classes import HistoryKeeper
 from gui_components.clickable_component import ClickableComponent
-from base.utility_functions import render_words, remove_last_ch
+from base.utility_functions import remove_last_ch
+from base.gui_utility_functions import render_words
 from base.drawable_objects import GameObject
 from base.dimensions import Dimensions
-from base.important_variables import background_color, screen_height, screen_length, game_window
-import pygame
-import keyboard
+from base.important_variables import *
 
-pygame.init()
 tk = Tk()
 
 class TextBox(ClickableComponent):
@@ -79,7 +77,9 @@ class TextBox(ClickableComponent):
         one_letter = one_letter_text.get_rect()
         self.font_ch_length = one_letter.width
         self.font_ch_height = one_letter.height
-        self.initialize_keys()
+
+        if self.is_editable:
+            self.initialize_keys()
 
     def set_font(self, font_size):
         """ summary: changes the text box's font

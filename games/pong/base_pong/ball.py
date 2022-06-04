@@ -3,7 +3,7 @@ from base.drawable_objects import Ellipse
 from base.velocity_calculator import VelocityCalculator
 from base.important_variables import *
 from base.colors import *
-from base.utility_classes import Fraction
+from base.fraction import Fraction
 
 
 class Ball(Ellipse):

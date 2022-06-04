@@ -1,8 +1,6 @@
-import pygame
-
 from base.events import Event
 from gui_components.component import Component
-
+from base.important_variables import *
 
 class ClickableComponent(Component):
     """A component that can be clicked"""

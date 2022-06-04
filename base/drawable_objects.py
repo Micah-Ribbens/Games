@@ -1,12 +1,92 @@
-from math import sqrt
-
-import pygame
-from base.important_variables import game_window
-from base.utility_functions import percentage_to_number
+from base.dimensions import Dimensions
+from base.utility_functions import *
 
 from gui_components.component import Component
 
-class Segment:
+
+class GameObject(Component):
+    """ Adds onto Dimensions (x and y coordinates, length, height, etc.) and adds upon that drawing,
+        getting an object's x and y coordinates"""
+
+    color = (0, 0, 250)
+    name = ""
+    attributes = ["x_coordinate", "y_coordinate"]
+    object_type = ""
+
+    def __init__(self, x_coordinate=0, y_coordinate=0, height=0, length=0, color=(0, 0, 0)):
+        """summary: Initializes the object with the numbers (int) and color (RGB tuple) provided
+
+            params:
+                x_coordinate: int; the x_coordinate (in pixels) of the game_object
+                y_coordinate: int; the y_coordinate (in pixels) of the game_object
+                height: int; the height (in pixels) of the game_object
+                length: int; the length (in pixels) of the game_object
+                color: tuple; the (Red, Green, Blue) values of the game_object for color
+
+
+            returns: None
+            """
+
+        super().__init__(x_coordinate, y_coordinate, length, height)
+        self.color = color
+        self.name = id(self)
+
+    def render(self):
+        """ summary: draws the game_object on to the game_window using the variables provided in __init__
+            (x_coordinate, y_coordinate, length, height, and color)
+
+            params: None
+            returns: None
+        """
+
+        pygame.draw.rect(game_window.get_window(), self.color, (self.x_coordinate,
+                         self.y_coordinate, self.length, self.height))
+
+    def run(self):
+        pass
+
+    # Purely for debugging purposes; so you can see the location and size of game objects
+    def __str__(self):
+        """ summary: for debugging and it displays the x_coordinate, y_coordinate, length, height, bottom, and right_edge of the game_object
+            params: None
+            returns: None
+        """
+
+        return f"name {self.name} x {self.x_coordinate} y {self.y_coordinate} length {self.length} height {self.height} bottom {self.bottom} right_edge {self.right_edge}\n"
+
+    def draw_in_segments(object, segments):
+        """ summary: draws all the segments provided and uses the object's attributes to turn the percentages into numbers
+            (percent_length would use the object's length to turn it into a number for instance)
+
+            params: 
+                object: GameObject; the game_object that is what the segments are segments of
+                segments: list of Segment; the segments of the object
+            
+            returns: None
+        """
+
+        GameObject.render(object)
+        for segment in segments:
+            x_coordinate = percentage_to_number(segment.percent_right, object.length) + object.x_coordinate
+            y_coordinate = percentage_to_number(segment.percent_down, object.height) + object.y_coordinate
+            height = percentage_to_number(segment.percent_height, object.height)
+            length = percentage_to_number(segment.percent_length, object.length)
+            GameObject.render(GameObject(x_coordinate, y_coordinate, height, length, segment.color))
+
+    def set_x_coordinate(self, x_coordinate):
+        self.x_coordinate = x_coordinate
+
+    def set_y_coordinate(self, y_coordinate):
+        self.y_coordinate = y_coordinate
+
+    def set_length(self, length):
+        self.length = length
+
+    def set_height(self, height):
+        self.height = height
+
+
+class Segment(Dimensions):
     """ Stores the necessary information for object to be drawn in segments- the color and values in relation to the base object"""
 
     color = (0, 0, 0)
@@ -33,80 +113,8 @@ class Segment:
         self.percent_down, self.percent_right = kwargs.get("percent_down"), kwargs.get("percent_right")
 
         self.percent_length, self.percent_height = kwargs.get("percent_length"), kwargs.get("percent_height")
+        super().__init__(self.percent_right, self.percent_down, self.percent_length, self.percent_height)
 
-
-class GameObject(Component):
-    """ Adds onto Dimensions (x and y coordinates, length, height, etc.) and adds upon that drawing,
-        getting an object's x and y coordinates"""
-
-    color = (0, 0, 250)
-    name = ""
-    attributes = ["x_coordinate", "y_coordinate"]
-    
-    def __init__(self, x_coordinate=0, y_coordinate=0, height=0, length=0, color=(0, 0, 0)):
-        """summary: Initializes the object with the numbers (int) and color (RGB tuple) provided
-
-            params:
-                x_coordinate: int; the x_coordinate (in pixels) of the game_object
-                y_coordinate: int; the y_coordinate (in pixels) of the game_object
-                height: int; the height (in pixels) of the game_object
-                length: int; the length (in pixels) of the game_object
-                color: tuple; the (Red, Green, Blue) values of the game_object for color
-
-
-            returns: None
-            """
-
-        super().__init__(x_coordinate, y_coordinate, length, height)
-        self.color = color
-        self.name = id(self)
-
-    def run(self):
-        pass
-
-
-    def render(self):
-        """ summary: draws the game_object on to the game_window using the variables provided in __init__
-            (x_coordinate, y_coordinate, length, height, and color)
-
-            params: None
-            returns: None
-        """
-
-        pygame.draw.rect(game_window.get_window(), self.color, (self.x_coordinate,
-                         self.y_coordinate, self.length, self.height))
-
-    # Purely for debugging purposes; so you can see the location and size of game objects
-    def __str__(self):
-        """ summary: for debugging and it displays the x_coordinate, y_coordinate, length, height, bottom, and right_edge of the game_object
-            params: None
-            returns: None
-        """
-
-        return f"name {self.name} x {self.x_coordinate} y {self.y_coordinate} length {self.length} height {self.height} bottom {self.bottom} right_edge {self.right_edge}\n"
-
-    def draw_in_segments(object, segments):
-        """ summary: draws all the segments provided and uses the object's attributes to turn the percentages into numbers
-            (percent_length would use the object's length to turn it into a number for instance)
-
-            params: 
-                object: GameObject; the game_object that is what the segments are segments of
-                segments: list of Segment; the segments of the object
-            
-            returns: None
-        """
-
-        for segment in segments:
-            x_coordinate = percentage_to_number(
-                segment.percent_right, object.length) + object.x_coordinate
-            y_coordinate = percentage_to_number(
-                segment.percent_down, object.height) + object.y_coordinate
-            height = percentage_to_number(
-                segment.percent_height, object.height)
-            length = percentage_to_number(
-                segment.percent_length, object.length)
-            GameObject.render(GameObject(
-                x_coordinate, y_coordinate, height, length, segment.color))
 
 class Ellipse(GameObject):
     """A GameObject this is elliptical"""
@@ -170,6 +178,14 @@ class Ellipse(GameObject):
         right_side = 1 - x_fraction
         # Equation now looks like (y - k)^2 = (1 - (x - h)^2 / a^2) * b^2
         right_side *= pow(b, 2)
+
+        # So there is not a rounding error where the number is something like 1E-8 causing an imaginary number error
+        rounded(right_side, 7)
+
+        # Should not happen, but if it does the game should not crash
+        if right_side < 0:
+            return [0, 0]
+
 
         # Since a sqrt can either be positive or negative you have to do +-
         y_min = sqrt(right_side) + k

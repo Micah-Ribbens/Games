@@ -1,5 +1,4 @@
-import pygame
-from base.utility_functions import render_words
+from base.gui_utility_functions import render_words
 from base.important_variables import *
 from games.pong.base_pong.ball import Ball
 
