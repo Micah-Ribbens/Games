@@ -44,9 +44,9 @@ class Player(WeaponUser):
     invincibility_event = None
 
     # Booleans
-    can_move_down = True
-    can_move_left = True
-    can_move_right = True
+    can_move_down = False
+    can_move_left = False
+    can_move_right = False
     is_on_platform = True
     is_facing_right = True
 
@@ -141,6 +141,9 @@ class Player(WeaponUser):
         self.jumping_path.initial_velocity = self.normal_upwards_velocity
         self.hit_points_left = self.total_hit_points
         self.invincibility_event.reset()
+
+        # Resetting the direction the player can move
+        self.can_move_left, self.can_move_right, self.can_move_down = False, False, False
 
         for path_or_event in self.paths_and_events:
             path_or_event.reset()
