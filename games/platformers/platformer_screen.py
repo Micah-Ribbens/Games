@@ -1,6 +1,7 @@
 from base.dimensions import Dimensions
 from base.engines import CollisionsFinder
 from base.utility_classes import HistoryKeeper
+from base.velocity_calculator import VelocityCalculator
 from games.platformers.base.gravity_engine import GravityEngine
 from games.platformers.base.platform import Platform
 from games.platformers.base.player import Player
@@ -22,6 +23,8 @@ class PlatformerScreen(Screen):
     platforms = []
     game_objects = []
     gravity_engine = None
+    frames = 0
+    last_time = 0 #The last time that objects were added to the History Keeper
 
     def __init__(self):
         """Initializes the object"""
@@ -65,16 +68,21 @@ class PlatformerScreen(Screen):
         """Runs all the code necessary in order for the platformer to work"""
 
         self.gravity_engine.run()
-        self.update_game_objects()
+        for player in self.players:
+            player.run()
 
-        if HistoryKeeper.is_populated(self.game_objects):
+        if self.frames % 10 == 0 and self.frames > 1:
+            self.update_game_objects()
             self.run_all_collisions()
 
             # All the enemies and players should do something based on the updated collision they got from 'self.run_all_collisions()'
             for game_object in self.enemies + self.players:
-                game_object.run_collisions()
+                game_object.run_collisions(self.last_time)
 
-        self.add_game_objects()
+        if self.frames % 10 == 0:
+            self.add_game_objects()
+            self.last_time = VelocityCalculator.time
+        self.frames += 1
 
     def update_game_objects(self):
         """Runs the necessary code to prepare for collisions and some other miscellaneous stuff like making sure
@@ -86,7 +94,6 @@ class PlatformerScreen(Screen):
                 self.reset_game()
 
             player_components += player.get_sub_components()
-            player.run()
             player.reset_collision_data()
 
         updated_enemies = []
@@ -109,6 +116,9 @@ class PlatformerScreen(Screen):
         self.setup_enemies_and_platforms()
         self.gravity_engine.reset()
         HistoryKeeper.last_objects = {}
+        self.frames = 0
+        self.frames = 0
+        print("RESET GAME")
 
     def run_all_collisions(self):
         """Runs all the collisions between the player, projectiles, and enemies"""
@@ -126,7 +136,7 @@ class PlatformerScreen(Screen):
                 object2 = self.game_objects[j]
 
                 collision_is_possible = object2.is_addable and len(object1.object_type) != len(object2.object_type)
-                if collision_is_possible and CollisionsFinder.is_collision(object1, object2):
+                if collision_is_possible and CollisionsFinder.is_collision(object1, object2, self.last_time):
                     self.run_object_collisions(object1, object2)
 
     def run_object_collisions(self, main_object, other_object):
@@ -143,7 +153,7 @@ class PlatformerScreen(Screen):
             main_object.user.run_enemy_collision(other_object, main_object.index)
 
         if self.is_enemy_weapon(main_object) and self.is_platform(other_object):
-            main_object.user.run_inanimate_object_collision(other_object, main_object.index)
+            main_object.user.run_inanimate_object_collision(other_object, main_object.index, self.last_time)
 
         if self.is_player_weapon(main_object) and self.is_enemy(other_object):
             main_object.user.run_enemy_collision(other_object, main_object.index)
@@ -160,10 +170,10 @@ class PlatformerScreen(Screen):
         """Runs the collisions between the user + the user's weapon and inanimate objects"""
 
         if is_user and self.is_platform(other_object):
-            user_or_weapon.run_inanimate_object_collision(other_object, user_or_weapon.index)
+            user_or_weapon.run_inanimate_object_collision(other_object, user_or_weapon.index, self.last_time)
 
         if is_weapon and self.is_platform(other_object):
-            user_or_weapon.user.run_inanimate_object_collision(other_object, user_or_weapon.index)
+            user_or_weapon.user.run_inanimate_object_collision(other_object, user_or_weapon.index, self.last_time)
 
     def add_game_objects(self):
         """Adds all the game objects to the HistoryKeeper"""

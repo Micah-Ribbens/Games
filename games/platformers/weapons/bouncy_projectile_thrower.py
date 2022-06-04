@@ -37,7 +37,7 @@ class BouncyProjectile(Projectile):
 class BouncyProjectileThrower(ProjectileThrower):
     """A projectile thrower except the projectiles bounce"""
 
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
         """Runs all the code for figuring ot what to do when one of the projectiles hits an inanimate object (platforms, trees, etc.)"""
 
         # No idea why this sometimes happens but sometimes there is a collision for a projectile that doesn't exist
@@ -47,11 +47,11 @@ class BouncyProjectileThrower(ProjectileThrower):
 
         projectile: BouncyProjectile = self.sub_components[index_of_sub_component]
 
-        if CollisionsFinder.is_top_collision(projectile, inanimate_object, True):
+        if CollisionsFinder.is_top_collision(projectile, inanimate_object, True, time):
             projectile.run_collision(inanimate_object.y_coordinate)
 
         else:
-            super().run_inanimate_object_collision(inanimate_object, index_of_sub_component)
+            super().run_inanimate_object_collision(inanimate_object, index_of_sub_component, time)
 
     def run_upon_activation(self):
         """Runs the code that should be completed when the code decides to use this weapon"""

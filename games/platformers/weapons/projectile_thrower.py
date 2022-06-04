@@ -83,7 +83,7 @@ class ProjectileThrower(Weapon):
         user.cause_damage(self.damage)
         self.deleted_sub_components_indexes.append(index_of_sub_component)
 
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
         """Runs all the code for figuring ot what to do when one of the projectiles hits an inanimate object (platforms, trees, etc.)"""
 
         self.deleted_sub_components_indexes.append(index_of_sub_component)

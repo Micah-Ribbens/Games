@@ -63,13 +63,11 @@ class CollisionsUtilityFunctions:
 
         return is_moving_right_collision
 
-    def get_collision_data(object1, object2, collision_time, is_moving_collision):
+    def get_collision_data(object1, object2, prev_object1, prev_object2, collision_time, is_moving_collision):
         """returns: List of CollisionData; [object1 Collision Data, object2 Collision Data]"""
 
         is_collision = collision_time != -1
 
-        prev_object1 = HistoryKeeper.get_last(object1.name)
-        prev_object2 = HistoryKeeper.get_last(object2.name)
         object1_displacement = object1.x_coordinate - prev_object1.x_coordinate
         object2_displacement = object2.x_coordinate - prev_object2.x_coordinate
         object_xy = CollisionsUtilityFunctions.get_object_xy(object1, prev_object1, collision_time)

@@ -7,6 +7,7 @@ from base.events import Event, TimedEvent
 from base.game_movement import GameMovement
 
 from base.quadratic_equations import PhysicsPath
+from base.utility_classes import HistoryKeeper
 from base.utility_functions import key_is_hit
 from base.velocity_calculator import VelocityCalculator
 from games.platformers.weapons.bouncy_projectile_thrower import BouncyProjectileThrower
@@ -89,6 +90,8 @@ class Player(WeaponUser):
         self.jumping_path.run(False, False)
         self.sub_components = [self] + self.weapon.get_sub_components()
         self.invincibility_event.run(self.invincibility_event.current_time > self.invincibility_event.time_needed, False)
+        # if self.is_on_platform:
+        #     self.gravity_engine.game_object_to_physics_path[self].reset()
 
         if self.jumping_path.has_finished() and self.jumping_event.is_click():
             self.jumping_path.start()
@@ -213,20 +216,23 @@ class Player(WeaponUser):
         return return_value
 
     # Collision Stuff
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
         """Runs what should happen when the player collides with an inanimate object"""
 
         if index_of_sub_component == self.index_of_user:
-            self.update_platform_collision_data(inanimate_object)
+            self.update_platform_collision_data(inanimate_object, time)
 
         if index_of_sub_component != self.index_of_user:
-            self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component - self.weapon_index_offset)
+            self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component - self.weapon_index_offset, time)
 
-    def run_collisions(self):
+    def run_collisions(self, time):
         """Runs what should happen based on what got stored in the collision data"""
 
-        self.alter_player_horizontal_movement()
-        self.alter_player_vertical_movement()
+        # The player should only act upon the collision data if there was stuff in the History Keeper because if there wasn't
+        # Then the game is automatically going to say it was not a collision (top, left, right, bottom)
+        if HistoryKeeper.get_last_from_time(self.name, time) is not None:
+            self.alter_player_horizontal_movement()
+            self.alter_player_vertical_movement()
 
     def alter_player_horizontal_movement(self):
         """Alters the player's horizontal movement so it stays within the screen and is not touching the platforms"""

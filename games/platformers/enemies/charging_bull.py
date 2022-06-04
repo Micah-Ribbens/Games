@@ -41,11 +41,11 @@ class ChargingBull(Enemy):
         charging_bull_distance = VelocityCalculator.calc_distance(self.current_velocity)
         self.x_coordinate += charging_bull_distance if self.is_moving_right else -charging_bull_distance
 
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
         """Runs the collision for an inanimate object"""
 
-        is_left_collision = CollisionsFinder.is_left_collision(self, inanimate_object, True)
-        is_right_collision = CollisionsFinder.is_right_collision(self, inanimate_object, True)
+        is_left_collision = CollisionsFinder.is_left_collision(self, inanimate_object, True, time)
+        is_right_collision = CollisionsFinder.is_right_collision(self, inanimate_object, True, time)
 
         if is_left_collision or is_right_collision:
             self.acceleration_path.current_time = self.time_to_get_to_max_velocity / 2

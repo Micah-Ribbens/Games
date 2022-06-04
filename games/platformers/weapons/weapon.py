@@ -64,7 +64,7 @@ class Weapon(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
         """Runs what should happen when the weapon and an inanimate object collide"""
         pass
 

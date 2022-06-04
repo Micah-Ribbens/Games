@@ -61,7 +61,13 @@ class HistoryKeeper:
             returns: the version of the object from the last cycle
         """
 
-        return HistoryKeeper.last_objects.get(f"{name}{HistoryKeeper.last_time}")
+        return HistoryKeeper.get_last_from_time(name, HistoryKeeper.last_time)
+
+    def get_last_from_time(name, time):
+        """returns: Object; the version of the object from the cycle with that time"""
+
+        return HistoryKeeper.last_objects.get(f"{name}{time}")
+
 
     def is_populated(all_objects):
         """returns: boolean; if the History Keeper has these objects in it NOTE: each object in object must have the attribute name"""

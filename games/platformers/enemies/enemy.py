@@ -41,10 +41,10 @@ class Enemy(WeaponUser, abc.ABC):
 
         return self.components
 
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
         """Runs what should happen if the enemy or something the player threw hit an inanimate object"""
 
         if index_of_sub_component != self.index_of_user:
-            self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component - self.weapon_index_offset)
+            self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component - self.weapon_index_offset, time)
 
 

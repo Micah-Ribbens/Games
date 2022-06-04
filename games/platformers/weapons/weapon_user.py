@@ -2,6 +2,8 @@ import abc
 
 from base.drawable_objects import GameObject
 from base.engines import CollisionsFinder
+from base.important_variables import screen_length
+from base.velocity_calculator import VelocityCalculator
 
 
 class WeaponUser(GameObject):
@@ -52,10 +54,10 @@ class WeaponUser(GameObject):
     def user_type(self):
         return self.object_type
 
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
         """Runs what should happen when the weapon and an inanimate object collide"""
 
-        self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component - 1)
+        self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component - 1, time)
 
     def run_enemy_collision(self, enemy, index_of_sub_component):
         """Runs what should happen when the weapon user hits an 'enemy' (the user would be the enemy's 'enemy')"""
@@ -81,16 +83,18 @@ class WeaponUser(GameObject):
 
         self.left_collision_data, self.right_collision_data, self.top_collision_data, self.bottom_collision_data = [False, None], [False, None], [False, None], [False, None]
 
-    def get_collision_data(self, inanimate_object, is_collision):
+    def get_collision_data(self, inanimate_object, is_collision, time):
         """returns: Boolean[4]; [is_left_collision, is_right_collision, is_top_collision, is_bottom_collision] --> the
            collision data gotten from the inanimate_object and is by the perspective of the user (has the user collided with the inanimate_object's right_edge)"""
 
         is_same_coordinates = self.right_edge == inanimate_object.x_coordinate or self.x_coordinate == inanimate_object.right_edge
+        if inanimate_object.y_coordinate == 300 and self.max_velocity == VelocityCalculator.give_velocity(screen_length, 700):
+            CollisionsFinder.is_top_collision(self, inanimate_object, True, time)
 
-        return [CollisionsFinder.is_left_collision(self, inanimate_object, is_collision),
-                CollisionsFinder.is_right_collision(self, inanimate_object, is_collision),
-                CollisionsFinder.is_top_collision(self, inanimate_object, is_collision) and not is_same_coordinates,
-                CollisionsFinder.is_bottom_collision(self, inanimate_object, is_collision)]
+        return [CollisionsFinder.is_left_collision(self, inanimate_object, is_collision, time),
+                CollisionsFinder.is_right_collision(self, inanimate_object, is_collision, time),
+                CollisionsFinder.is_top_collision(self, inanimate_object, is_collision, time) and not is_same_coordinates,
+                CollisionsFinder.is_bottom_collision(self, inanimate_object, is_collision, time)]
 
     def update_collision_data(self, inanimate_object, current_collision_data, is_collision):
         """Updates the values of the 'current_collision_data' to reflect 'is_collision' and 'inanimate_object'"""
@@ -98,19 +102,19 @@ class WeaponUser(GameObject):
         if not current_collision_data[0] and is_collision:
             current_collision_data[0], current_collision_data[1] = is_collision, inanimate_object
 
-    def update_platform_collision_data(self, inanimate_object):
+    def update_platform_collision_data(self, inanimate_object, time):
         """Updates all the inanimate_object collision data"""
 
         # NOTE: From here own down *_collision_data[0] is if a user and a inanimate_object have collided
         # and *_collision_data[1] is the inanimate_object the user collided with
-        left_collision, right_collision, top_collision, bottom_collision = self.get_collision_data(inanimate_object, True)
+        left_collision, right_collision, top_collision, bottom_collision = self.get_collision_data(inanimate_object, True, time)
 
         self.update_collision_data(inanimate_object, self.left_collision_data, left_collision)
         self.update_collision_data(inanimate_object, self.right_collision_data, right_collision)
         self.update_collision_data(inanimate_object, self.top_collision_data, top_collision)
         self.update_collision_data(inanimate_object, self.bottom_collision_data, bottom_collision)
 
-    def run_collisions(self):
+    def run_collisions(self, time):
         """Runs what should happen based on what got stored in the collision data (nothing is a possibility like possibly an enemy)"""
 
         pass
