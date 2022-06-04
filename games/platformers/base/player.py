@@ -75,7 +75,7 @@ class Player(WeaponUser):
 
         self.jumping_event, self.right_event, self.left_event = Event(), Event(), Event()
 
-        self.weapon = BouncyProjectileThrower(lambda: key_is_hit(self.attack_key), self, is_gone)
+        self.weapon = ProjectileThrower(lambda: key_is_hit(self.attack_key), self, is_gone)
         self.invincibility_event = TimedEvent(1, False)
         self.paths_and_events = [self.jumping_path, self.deceleration_path, self.acceleration_path]
 

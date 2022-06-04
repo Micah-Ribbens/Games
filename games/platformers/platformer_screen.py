@@ -30,6 +30,7 @@ class PlatformerScreen(Screen):
         self.players = [Player(pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_s, pygame.K_f, self.is_gone)]
         self.setup_enemies_and_platforms()
         self.gravity_engine = GravityEngine(self.players, self.players[0].jumping_path.acceleration)
+
         for player in self.players:
             player.gravity_engine = self.gravity_engine
             player.x_coordinate = self.platforms[0].x_coordinate + 10
@@ -66,13 +67,15 @@ class PlatformerScreen(Screen):
         if HistoryKeeper.is_populated(self.game_objects):
             self.run_all_collisions()
 
+            # All the enemies and players should do something based on the updated collision they got from 'self.run_all_collisions()'
             for game_object in self.enemies + self.players:
                 game_object.run_collisions()
 
         self.add_game_objects()
 
     def update_game_objects(self):
-        """Updates the values of the game_objects"""
+        """Runs the necessary code to prepare for collisions and some other miscellaneous stuff like making sure
+        killed enemies are put onto the screen and resetting the game if the player dies"""
 
         player_components = []
         for player in self.players:
@@ -110,38 +113,48 @@ class PlatformerScreen(Screen):
         # TODO maybe could make this quicker, but not sure if it is worth it
         for i in range(len(self.game_objects)):
             object1 = self.game_objects[i]
-            # Only the objects that can be added to the History Keeper should be checked for a collision;
-            if not object1.is_addable:
+            # Only the objects that can be added to the History Keeper should be checked for a collision; also
+            # The platforms don't need to check to see if they collided with other objects because if something
+            # Collides with the platform it won't do anything in reaction
+            if not object1.is_addable or self.is_platform(object1):
                 continue
 
             for j in range(len(self.game_objects)):
                 object2 = self.game_objects[j]
 
-                collision_is_not_possible = not object2.is_addable or len(object1.object_type) == len(object2.object_type)
-                if collision_is_not_possible or not CollisionsFinder.is_collision(object1, object2):
-                    continue
+                collision_is_possible = object2.is_addable and len(object1.object_type) != len(object2.object_type)
+                if collision_is_possible and CollisionsFinder.is_collision(object1, object2):
+                    self.run_object_collisions(object1, object2)
 
-                self.run_user_weapon_inanimate_collisions(self.is_player_weapon(object1), self.is_player(object1), object1, object2)
-                self.run_user_weapon_inanimate_collisions(self.is_enemy_weapon(object1), self.is_enemy(object1), object1, object2)
+    def run_object_collisions(self, main_object, other_object):
+        """Runs the collisions between the 'main_object' and the 'other_object;' the main_object acts upon the other_object.
+        By act upon I mean damages the other_object, moves the other_object, etc."""
 
-                if self.is_enemy(object1) and self.is_player(object2):
-                    object1.run_enemy_collision(object2, object1.index)
+        self.run_user_weapon_inanimate_collisions(self.is_player_weapon(main_object), self.is_player(main_object), main_object, other_object)
+        self.run_user_weapon_inanimate_collisions(self.is_enemy_weapon(main_object), self.is_enemy(main_object), main_object, other_object)
 
-                if self.is_enemy_weapon(object1) and self.is_player(object2):
-                    object1.user.run_enemy_collision(object2, object1.index)
+        if self.is_enemy(main_object) and self.is_player(other_object):
+            main_object.run_enemy_collision(other_object, main_object.index)
 
-                if self.is_enemy_weapon(object1) and self.is_platform(object2):
-                    object1.user.run_inanimate_object_collision(object2, object1.index)
+        if self.is_enemy_weapon(main_object) and self.is_player(other_object):
+            main_object.user.run_enemy_collision(other_object, main_object.index)
 
-                if self.is_player_weapon(object1) and self.is_enemy(object2):
-                    object1.user.run_enemy_collision(object2, object1.index)
+        if self.is_enemy_weapon(main_object) and self.is_platform(other_object):
+            main_object.user.run_inanimate_object_collision(other_object, main_object.index)
 
-                if self.is_player_weapon(object1) and self.is_enemy_weapon(object2):
-                    object1.user.run_enemy_collision(object2, object1.index)
-                    object2.user.run_enemy_collision(object1, object2.index)
+        if self.is_player_weapon(main_object) and self.is_enemy(other_object):
+            main_object.user.run_enemy_collision(other_object, main_object.index)
+
+        # Doing it this way, so a collision does not happen twice - once when the player_weapon is the main_object
+        # And the other where the enemy_weapon is the main_object.
+        if self.is_player_weapon(main_object) and self.is_enemy_weapon(other_object):
+            main_object.user.run_enemy_collision(other_object, main_object.index)
+
+        if self.is_enemy_weapon(main_object) and self.is_enemy_weapon(other_object):
+            main_object.user.run_enemy_collision(other_object, main_object.index)
 
     def run_user_weapon_inanimate_collisions(self, is_weapon, is_user, user_or_weapon, other_object):
-        """Runs the collisions for the user and weapon for inanimate objects"""
+        """Runs the collisions between the user + the user's weapon and inanimate objects"""
 
         if is_user and self.is_platform(other_object):
             user_or_weapon.run_inanimate_object_collision(other_object, user_or_weapon.index)
@@ -152,13 +165,13 @@ class PlatformerScreen(Screen):
     def add_game_objects(self):
         """Adds all the game objects to the HistoryKeeper"""
 
-        HistoryKeeper.add(self.players[0], self.players[0].name, True)
+        for player in self.players:
+            self.add_sub_components(player.get_sub_components())
+
         self.add_sub_components(self.platforms)
-        self.add_sub_components(self.players[0].get_sub_components())
 
-        if len(self.enemies) != 0:
-
-            self.add_sub_components(self.enemies[0].get_sub_components())
+        for enemy in self.enemies:
+            self.add_sub_components(enemy.get_sub_components())
 
     def add_sub_components(self, component_list):
         """Adds all the components in the component_list to the History Keeper"""

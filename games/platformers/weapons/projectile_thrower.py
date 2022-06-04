@@ -35,6 +35,11 @@ class Projectile(Ellipse):
         distance = VelocityCalculator.calc_distance(self.velocity)
         self.x_coordinate += distance if self.is_moving_right else -distance
 
+    def cause_damage(self, amount):
+        """Causes damage to the projectile"""
+
+        self.hit_points_left -= amount
+
 
 class ProjectileThrower(Weapon):
     """A weapon that is used for throwing projectiles"""
@@ -73,7 +78,7 @@ class ProjectileThrower(Weapon):
                                    self.user.projectile_velocity, self.object_type, self.total_hit_points, self.user))
 
     def run_enemy_collision(self, user, index_of_sub_component):
-        """Runs the code for figuring out what to do when one of the projectiles hits an enemy"""
+        """Runs the code for figuring out what to do when one of the projectiles hits an enemy or an enemy's projectile"""
 
         user.cause_damage(self.damage)
         self.deleted_sub_components_indexes.append(index_of_sub_component)
