@@ -113,7 +113,7 @@ class Grid:
 
         # Must minus the height_buffer * (number_of_items - 2) from the regular height because
         # Every item has the self.height_buffer after it besides the first and last item, so hence the minus 2
-        remaining_height = self.dimensions.height - (self.height_buffer * (self.number_of_items - 2))
+        remaining_height = self.dimensions.height - (self.height_buffer * (rows - 2))
         height = remaining_height // rows
 
         if item_max_height is not None and height > item_max_height:

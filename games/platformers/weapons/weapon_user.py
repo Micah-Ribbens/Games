@@ -94,7 +94,7 @@ class WeaponUser(GameObject):
         return [CollisionsFinder.is_left_collision(self, inanimate_object, is_collision, time),
                 CollisionsFinder.is_right_collision(self, inanimate_object, is_collision, time),
                 CollisionsFinder.is_top_collision(self, inanimate_object, is_collision, time) and not is_same_coordinates,
-                CollisionsFinder.is_bottom_collision(self, inanimate_object, is_collision, time)]
+                CollisionsFinder.is_bottom_collision(self, inanimate_object, is_collision, time) and not is_same_coordinates]
 
     def update_collision_data(self, inanimate_object, current_collision_data, is_collision):
         """Updates the values of the 'current_collision_data' to reflect 'is_collision' and 'inanimate_object'"""

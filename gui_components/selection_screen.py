@@ -1,4 +1,7 @@
-from base.colors import white, green
+from math import sqrt
+from math import ceil
+
+from base.colors import white, pleasing_green
 from base.dimensions import Dimensions
 from base.velocity_calculator import VelocityCalculator
 from gui_components.button import Button
@@ -22,10 +25,18 @@ class SelectionScreen(SubScreen):
         self.buttons, self.components, self.screens = [], [], []
 
         for screen_name in screen_names:
-            self.buttons.append(Button(screen_name, 25, white, green))
+            self.buttons.append(Button(screen_name, 25, white, pleasing_green))
+
+        # To make the grid as even as possible
+        max_columns = ceil(sqrt(len(screen_names)))
 
         button_grid = Grid(Dimensions(length_used_up, height_used_up, screen_length - length_used_up,
-                                      screen_height - height_used_up), 4, None, True)
+                                      screen_height - height_used_up), max_columns, None, True)
+
+        # So the height buffer is at max 10 percent of the total grid
+        max_height_buffer = button_grid.dimensions.height / (10 * max_columns)
+        if button_grid.height_buffer > max_height_buffer:
+            button_grid.height_buffer = max_height_buffer
 
         button_grid.turn_into_grid(self.buttons, screen_length / 3, screen_height / 3)
         self.selected_screen = self

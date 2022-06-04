@@ -16,7 +16,6 @@ class SubScreen(Screen):
 
         self.length_used_up, self.height_used_up = length_used_up, height_used_up
 
-
     def run(self):
         pass
 

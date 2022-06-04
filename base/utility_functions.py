@@ -267,7 +267,7 @@ def get_next_index(current_index, max_index):
 def get_prev_index(current_index, max_index):
     prev_index = current_index - 1
 
-    return prev_index if prev_index > 0 else max_index
+    return prev_index if prev_index >= 0 else max_index
 
 
 def get_index_of_range(ranges, number):
