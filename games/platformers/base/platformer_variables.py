@@ -1,4 +1,4 @@
 from base.important_variables import *
 
-displacement = screen_height * .4
-time = .5
+jump_displacement = screen_height * .4
+time_to_vertex_of_jump = .5

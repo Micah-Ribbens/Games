@@ -3,12 +3,13 @@ from math import sqrt
 from base.colors import red, light_gray, white
 from base.drawable_objects import Segment
 from base.engines import CollisionsFinder
+from base.equations import LineSegment, Point
 from base.events import Event, TimedEvent
 from base.game_movement import GameMovement
 
 from base.quadratic_equations import PhysicsPath
 from base.utility_classes import HistoryKeeper
-from base.utility_functions import key_is_hit
+from base.utility_functions import key_is_hit, solve_quadratic
 from base.velocity_calculator import VelocityCalculator
 from games.platformers.weapons.bouncy_projectile_thrower import BouncyProjectileThrower
 from games.platformers.weapons.projectile_thrower import ProjectileThrower
@@ -19,12 +20,12 @@ from games.platformers.weapons.weapon_user import WeaponUser
 
 class Player(WeaponUser):
     # Modifiable numbers
-    max_jump_height = displacement
+    max_jump_height = jump_displacement
     running_deceleration_time = .3
     base_y_coordinate = 0
     base_x_coordinate = 100
-    max_velocity = VelocityCalculator.give_velocity(screen_length, 700)
-    time_to_get_to_max_velocity = .3
+    max_velocity = VelocityCalculator.give_velocity(screen_length, 500)
+    time_to_get_to_max_velocity = .01
     total_hit_points = 20
     hit_points_left = total_hit_points
     object_type = "Player"
@@ -42,6 +43,7 @@ class Player(WeaponUser):
     paths_and_events = None
     gravity_engine = None
     invincibility_event = None
+    platform_is_on = None
 
     # Booleans
     can_move_down = False
@@ -67,7 +69,7 @@ class Player(WeaponUser):
         height = VelocityCalculator.give_measurement(screen_height, 15)
         super().__init__(100, screen_height - 200, height, length, white)
 
-        self.jumping_path = PhysicsPath(game_object=self, attribute_modifying="y_coordinate", height_of_path=-displacement, initial_distance=self.y_coordinate)
+        self.jumping_path = PhysicsPath(game_object=self, attribute_modifying="y_coordinate", height_of_path=-jump_displacement, initial_distance=self.y_coordinate, time=time_to_vertex_of_jump)
         self.jumping_path.set_initial_distance(self.y_coordinate)
         self.acceleration_path = PhysicsPath()
         self.acceleration_path.set_acceleration(self.time_to_get_to_max_velocity, self.max_velocity)
@@ -90,12 +92,9 @@ class Player(WeaponUser):
         self.jumping_path.run(False, False)
         self.sub_components = [self] + self.weapon.get_sub_components()
         self.invincibility_event.run(self.invincibility_event.current_time > self.invincibility_event.time_needed, False)
-        # if self.is_on_platform:
-        #     self.gravity_engine.game_object_to_physics_path[self].reset()
 
         if self.jumping_path.has_finished() and self.jumping_event.is_click():
-            self.jumping_path.start()
-            self.gravity_engine.game_object_to_physics_path[self].reset()
+            self.jump()
 
         if self.y_coordinate <= 0:
             self.run_bottom_collision(0)
@@ -122,7 +121,7 @@ class Player(WeaponUser):
             self.deceleration_path.reset()
             self.acceleration_path.reset()
 
-    def set_is_on_platform(self, is_on_platform):
+    def set_is_on_platform(self, is_on_platform, platform_is_on):
         """Sets the player's is on platform attribute"""
 
         if self.is_on_platform != is_on_platform and is_on_platform:
@@ -130,6 +129,7 @@ class Player(WeaponUser):
             self.jumping_path.set_initial_distance(self.y_coordinate)
             self.jumping_path.initial_velocity = self.normal_upwards_velocity
 
+        self.platform_is_on = platform_is_on if is_on_platform else None
         self.is_on_platform = is_on_platform
 
     def reset(self):
@@ -156,6 +156,12 @@ class Player(WeaponUser):
         self.jumping_path.set_initial_distance(y_coordinate)
         self.y_coordinate = y_coordinate
 
+    def jump(self):
+        """Makes the player jump"""
+
+        self.jumping_path.start()
+        self.gravity_engine.game_object_to_physics_path[self].reset()
+
     def decelerate_player(self, is_moving_right):
         """Makes the player decelerate"""
 
@@ -164,8 +170,8 @@ class Player(WeaponUser):
         self.is_facing_right = is_moving_right
 
         # If the player is not at maximum velocity it shouldn't take as long to decelerate
-        fraction_of_max_velocity = self.max_velocity / self.current_velocity
-        time_needed = self.running_deceleration_time / fraction_of_max_velocity
+        fraction_of_max_velocity = self.current_velocity / self.max_velocity
+        time_needed = self.running_deceleration_time * fraction_of_max_velocity
 
         # Gotten using math; Makes the player stop in the amount of time 'self.running_deceleration_time'
         self.deceleration_path.acceleration = (-self.deceleration_path.initial_velocity)/time_needed
@@ -266,7 +272,7 @@ class Player(WeaponUser):
             self.set_y_coordinate(self.top_collision_data[1].y_coordinate - self.height)
             self.gravity_engine.game_object_to_physics_path[self].reset()
 
-        self.set_is_on_platform(player_is_on_platform)
+        self.set_is_on_platform(player_is_on_platform, self.top_collision_data[1])
 
         if self.bottom_collision_data[0]:
             self.gravity_engine.game_object_to_physics_path[self].reset()
@@ -315,10 +321,86 @@ class Player(WeaponUser):
         if condition:
             function(value)
 
-    # TODO change me back
     def cause_damage(self, amount):
         """Damages the player by that amount and also starts the player's invincibility"""
 
         if self.invincibility_event.has_finished():
             self.hit_points_left -= amount
             self.invincibility_event.start()
+
+    def get_topmost_y_coordinate(self, last_platform, accuracy, min_accuracy):
+        """ summary: Figures out the minimum y coordinate of the next platform (remember the closer to the top of the screen the lower the y coordinate)
+
+            params:
+                last_platform: Platform; the platform the player would be jumping from
+                margin_of_error: double; how accurate the player has to be to clear this jump
+
+            returns: double; max y coordinate that the next platform could be at that leaves the player 'margin_of_error'
+        """
+
+        max_jump_height = self.max_jump_height
+        topmost_y_coordinate = last_platform.y_coordinate - (max_jump_height * accuracy) + self.height
+
+        # The absolute max of a platform is the player's height because the player has to get its bottom on the platform
+        # Which would mean the player's y coordinate would be 0 also
+        max_buffer = VelocityCalculator.give_measurement(screen_height, 25)
+        buffer = LineSegment(Point(1, 0), Point(min_accuracy, max_buffer)).get_y_coordinate(accuracy)
+        if topmost_y_coordinate <= self.height + buffer:
+            topmost_y_coordinate = self.height + buffer
+
+        return topmost_y_coordinate
+
+    def get_distance_to_reach_max_velocity(self):
+        """returns: double; the distance needed for the player to reach max velocity"""
+
+        time_needed = self.max_velocity / self.acceleration_path.acceleration
+        return self.acceleration_path.get_distance(time_needed)
+
+    def get_max_time_to_y_coordinate(self, start_y_coordinate, new_y_coordinate):
+        """returns; double; the max amount of time for the player's bottom to reach the new y coordinate"""
+
+        # TODO change this value if gravity is not the same as the player's jumping path
+        gravity = self.jumping_path.acceleration
+
+        vertex_y_coordinate = start_y_coordinate - self.max_jump_height
+        total_distance = self.max_jump_height + (new_y_coordinate - vertex_y_coordinate)
+
+        # Since the y distance the player travels is constant and the distance from where the player jumped and the
+        # vertex of the jump stays constant, then in order to optimize the jump the player has to be at the same velocity
+        # on both sides of the jump -> vertex parabola (max_jump_height). This would then mean that the player would have to travel the
+        # same distance on both sides because "vf = vi + at" and vi is 0 for both. This then would mean that:
+        # "1/2 * at^2 = 1/2 * (total_distance - max_jump_height)"
+        one_side_falling_time = solve_quadratic(1/2 * gravity, 0, -1/2 * (total_distance - self.max_jump_height))[1]
+
+        falling_distance = self.jumping_path.get_acceleration_displacement_from_time(one_side_falling_time)
+        player_vertex_after_jump = falling_distance + start_y_coordinate - self.max_jump_height
+
+        # The player can't jump beyond the top of the screen, so that has to be checked (also since the other 'y_coordinates'
+        # Are actually the bottom of the player then I have to substract that to figure out the 'actual_y_coordinate'
+        if player_vertex_after_jump - self.height <= 0:
+            falling_distance = self.max_jump_height - start_y_coordinate + self.height
+
+        # First and second falling times are in relation to what side of the jump -> vertex parabola
+        first_falling_time = solve_quadratic(1/2 * gravity, 0, -falling_distance)[1]
+        vertex_y_coordinate = start_y_coordinate + falling_distance - self.max_jump_height
+        second_falling_distance = new_y_coordinate - vertex_y_coordinate
+
+        second_falling_times = solve_quadratic(1/2 * gravity, 0, -second_falling_distance)
+        second_falling_time = second_falling_times[0]
+        if len(second_falling_times) == 2:
+            second_falling_time = second_falling_times[1]
+
+        return first_falling_time + second_falling_time + time_to_vertex_of_jump
+
+    def get_total_time(self, start_y_coordinate, gravity, new_y_coordinate, falling_distance):
+         # First and second falling times are in relation to what side of the jump -> vertex parabola
+        first_falling_time = solve_quadratic(1 / 2 * gravity, 0, -falling_distance)[1]
+        vertex_y_coordinate = start_y_coordinate + falling_distance - self.max_jump_height
+        second_falling_distance = new_y_coordinate - vertex_y_coordinate
+        second_falling_time = solve_quadratic(1 / 2 * gravity, 0, -second_falling_distance)[1]
+
+        return f"total time {first_falling_time + second_falling_time + time_to_vertex_of_jump} first falling time {first_falling_time} second falling time {second_falling_time}"
+
+
+
+

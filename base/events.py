@@ -45,7 +45,8 @@ class Event:
     def is_click(self):
         """returns: boolean; if the event is True this cycle and was not last cycle"""
 
-        return self.current_event and not self.happened_last_cycle()
+        # The code shouldn't say if it was a click if it doesn't know what happened last cyle
+        return self.current_event and not self.happened_last_cycle() and HistoryKeeper.get_last(self.name) is not None
 
     def has_stopped(self):
         """returns: boolean; if the event was True last cycle and is not True this cycle"""

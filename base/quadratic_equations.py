@@ -196,6 +196,7 @@ class PhysicsPath(PhysicsEquation):
     max_time = 0
     last_time = 0
     has_max_time = False
+    all_distance = 0
 
     # def __init__(self, game_object=None, attribute_modifying="", height_of_path=0, initial_distance=0, time=.5):
     def __init__(self, **kwargs):
@@ -272,16 +273,21 @@ class PhysicsPath(PhysicsEquation):
 
         return current_distance - last_distance
 
-    def get_gravity_distance_from_acceleration(self):
+    def get_acceleration_displacement(self):
         """returns: double; the distance from acceleration with gravity"""
 
         current_distance = 1/2 * self.acceleration * pow(self.current_time, 2)
         last_distance = 1/2 * self.acceleration * pow(self.last_time, 2)
-        # Have to minus the last time because otherwise it just endlessly compounds
         return current_distance - last_distance
     
-    def get_acceleration_displacement(self):
-        """returns: double; the displacement from acceleration normally (not with gravity)"""
+    def get_acceleration_displacement_from_time(self, time):
+        """returns: double; the displacement from acceleration at that time"""
+
+        return 1/2 * self.acceleration * pow(time, 2)
+
+    
+    def get_final_velocity(self):
+        """returns: double; the velocity from acceleration (assumes initial_velocity is 0)"""
         
         return self.acceleration * self.current_time
 

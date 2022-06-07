@@ -23,7 +23,7 @@ class GravityEngine:
 
                 physics_path.run(game_object.is_on_platform, not game_object.is_on_platform)
 
-                game_object.y_coordinate += physics_path.get_gravity_distance_from_acceleration()
+                game_object.y_coordinate += physics_path.get_acceleration_displacement()
 
     def reset(self):
         """Resets everything back to the start of the game"""

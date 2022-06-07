@@ -80,7 +80,7 @@ class GameMovement:
         """Runs the acceleration of the player"""
 
         acceleration_path.run(False, should_accelerate, True)
-        player.current_velocity = acceleration_path.get_acceleration_displacement()
+        player.current_velocity = acceleration_path.get_final_velocity()
 
         if player.current_velocity > player.max_velocity:
             player.current_velocity = player.max_velocity

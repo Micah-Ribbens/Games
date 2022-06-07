@@ -11,7 +11,7 @@ from games.platformers.enemies.bouncy_ninja import BouncyNinja
 from gui_components.grid import Grid
 from gui_components.health_bar import HealthBar
 from gui_components.screen import Screen
-from games.platformers.base.platformer_variables import *
+from base.important_variables import *
 
 
 class PlatformerScreen(Screen):
@@ -24,7 +24,7 @@ class PlatformerScreen(Screen):
     game_objects = []
     gravity_engine = None
     frames = 0
-    last_time = 0 #The last time that objects were added to the History Keeper
+    last_time = 0 #The last  that objects were added to the History Keeper
 
     def __init__(self):
         """Initializes the object"""
@@ -62,13 +62,17 @@ class PlatformerScreen(Screen):
         # One Medium Platform
         # self.platforms = [Platform(100, 300, 800, 100, True)]
 
-        self.enemies = [BouncyNinja(10, 20, self.platforms[0], self.players, self.is_gone), BouncyNinja(10, 20, self.platforms[2], self.players, self.is_gone)]
+        self.enemies = [ChargingBull(10, 20, self.platforms[0], self.players, self.is_gone), BouncyNinja(10, 20, self.platforms[2], self.players, self.is_gone), StraightNinja(10, 20, self.platforms[1], self.players, self.is_gone)]
 
     def run(self):
         """Runs all the code necessary in order for the platformer to work"""
 
         self.gravity_engine.run()
         for player in self.players:
+            # Have to do this every cycle so the player is realisticly affected by gravity every cycle
+            if player.platform_is_on is not None and not CollisionsFinder.is_simple_collision(player, player.platform_is_on):
+                player.set_is_on_platform(False, None)
+
             player.run()
 
         if self.frames % 10 == 0 and self.frames > 1:
@@ -199,7 +203,7 @@ class PlatformerScreen(Screen):
 
         components = []
         for game_object in self.players + self.enemies:
-            components += game_object.get_sub_components()
+            components += game_object.get_components()
 
         return components + self.player_health_bars + self.platforms
 

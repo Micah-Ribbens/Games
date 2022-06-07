@@ -124,3 +124,8 @@ class WeaponUser(GameObject):
 
         self.hit_points_left -= amount
 
+    def get_components(self):
+        """returns: Component[]; all the components that should be rendered and ran"""
+
+        return self.sub_components
+

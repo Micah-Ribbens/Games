@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from base.drawable_objects import GameObject
 from base.velocity_calculator import VelocityCalculator
 
